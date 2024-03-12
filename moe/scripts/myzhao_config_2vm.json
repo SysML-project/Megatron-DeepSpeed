@@ -1,0 +1,6 @@
+{
+    "resourceGroup": "kozyrakis-sysml",
+    "vms": [
+        "myzhao-megatron-r0"
+    ]
+}
