@@ -22,7 +22,7 @@ VMS=$(jq -r '.vms[]' "$CONFIG_FILE")
 # Loop through the list of VMs and start each one
 for VM_NAME in $VMS; do
     echo "Stopping $VM_NAME in resource group $RESOURCE_GROUP..."
-    az vm stop --name "$VM_NAME" --resource-group "$RESOURCE_GROUP"
+    az vm deallocate --name "$VM_NAME" --resource-group "$RESOURCE_GROUP"
     if [ $? -eq 0 ]; then
         echo "$VM_NAME stopped successfully."
     else

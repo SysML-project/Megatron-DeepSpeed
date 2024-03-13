@@ -1,5 +1,20 @@
 #!/bin/bash
 
+# Check if a configuration file path was provided as an argument
+if [ "$#" -lt 1 ]; then
+    echo "Usage: $0 path_to_ds_config [path_to_host_config]"
+    exit 1
+fi
+
+DS_CONFIG=$1
+
+if [ $# -eq 2 ]; then
+    source $2
+    HOST_ARGS="--hostfile=${HOST_FILE}"
+else
+    HOST_ARGS=""
+fi
+
 export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 TRAINING_STEPS=100000
@@ -51,7 +66,7 @@ DS_ARGS="\
 --deepspeed_config ds_config.json 
 "
 
-deepspeed ../pretrain_gpt.py \
+deepspeed $HOST_ARGS ../pretrain_gpt.py \
     $MODEL_ARGS \
     $TRAINING_ARGS \
     $DATA_ARGS \
