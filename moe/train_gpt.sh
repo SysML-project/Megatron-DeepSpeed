@@ -10,7 +10,8 @@ DS_CONFIG=$1
 
 if [ $# -eq 2 ]; then
     source $2
-    HOST_ARGS="--hostfile=${HOST_FILE}"
+    HOST_IP_ADDRESS=$(hostname -I | awk '{print $1}')
+    HOST_ARGS="--hostfile=${HOST_FILE} --ssh_port=2222 --master_addr ${HOST_IP_ADDRESS}"
 else
     HOST_ARGS=""
 fi
