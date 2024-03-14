@@ -55,7 +55,7 @@ COMPUTE_ARGS="\
 --DDP-impl local"
 
 OUTPUT_ARGS="\
---log-interval 100 \
+--log-interval 1 \
 --save-interval 2000 \
 --save ./checkpoints \
 --eval-interval 1000 \
@@ -64,13 +64,13 @@ OUTPUT_ARGS="\
 DS_ARGS="\
 --deepspeed \
 --zero-stage 0 \
---deepspeed_config ds_config.json 
+--deepspeed_config ${DS_CONFIG}
 "
-
 deepspeed $HOST_ARGS ../pretrain_gpt.py \
     $MODEL_ARGS \
     $TRAINING_ARGS \
     $DATA_ARGS \
     $COMPUTE_ARGS \
     $OUTPUT_ARGS \
-    --exit-interval 500 | tee output.log
+    $DS_ARGS \
+    --exit-interval 500 2>&1 | tee output.log
