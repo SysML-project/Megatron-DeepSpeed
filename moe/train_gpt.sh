@@ -95,4 +95,4 @@ deepspeed $HOST_ARGS ../pretrain_gpt.py \
     $COMPUTE_ARGS \
     $OUTPUT_ARGS \
     $DS_ARGS \
-    --exit-interval 500 2>&1 | tee output.log
+    --exit-interval 500 2>&1 | tee ${log_path}/output.log
