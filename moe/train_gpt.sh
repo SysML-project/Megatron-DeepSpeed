@@ -20,6 +20,28 @@ export CUDA_DEVICE_MAX_CONNECTIONS=1
 
 TRAINING_STEPS=100000
 
+# Create a new directory for this run
+job_name=gpt125M
+unique_id=${job_name}_$(date +%Y%m%d%H%M%S)_$$
+log_path=output/logs/${unique_id}
+
+mkdir $log_path
+
+new_ds_config=${log_path}/ds_config.json
+
+# Modify the ds config to point to this
+jq --arg logDir "$log_path" \
+    --arg jobName "$job_name" \
+    '.tensorboard.output_path = $logDir |
+     .tensorboard.job_name = $jobName |
+     .csv_monitor.output_path = $logDir |
+     .csv_monitor.job_name = $jobName' \
+    "$DS_CONFIG" > $new_ds_config
+
+echo "JOB ID ${unique_id}"
+echo "LOGGING METRICS TO ${log_path}"
+echo "USING DS CONFIG ${new_ds_config}"
+
 # Model hyperparameters.
 MODEL_ARGS="\
 --num-layers 12 \
@@ -64,7 +86,7 @@ OUTPUT_ARGS="\
 DS_ARGS="\
 --deepspeed \
 --zero-stage 0 \
---deepspeed_config ${DS_CONFIG}
+--deepspeed_config ${new_ds_config}
 "
 deepspeed $HOST_ARGS ../pretrain_gpt.py \
     $MODEL_ARGS \

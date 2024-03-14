@@ -12,12 +12,12 @@
     "wall_clock_breakdown": true,
     "tensorboard": {
         "enabled": true,
-        "output_path": "output/ds_logs/",
-        "job_name": "train_moe"
+        "output_path": "PLACEHOLDER",
+        "job_name": "PLACEHOLDER"
     },
     "csv_monitor": {
         "enabled": true,
-        "output_path": "output/ds_logs/",
-        "job_name": "train_moe"
+        "output_path": "PLACEHOLDER",
+        "job_name": "PLACEHOLDER"
     }
 }
