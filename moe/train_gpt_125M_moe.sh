@@ -84,7 +84,7 @@ GLOBAL_BATCH_SIZE=256
 ### Training duration configs
 ## The main termination condition, original GPT-3 paper trains for 300B tokens
 ## For MoE model, we found sometimes training a bit more to 330B tokens helps
-TRAIN_TOKENS=300000000000
+TRAIN_TOKENS=300000000
 # TRAIN_TOKENS=330000000000
 
 ## TRAIN_ITERS is another termination condition and also affect the number of 
@@ -257,7 +257,6 @@ megatron_options=" \
         --hysteresis 2 \
         --num-workers 0 \
         --fp16 \
-        --load ${CHECKPOINT_PATH} \
         --save ${CHECKPOINT_PATH} \
         --tensorboard-queue-size 1 \
         --log-timers-to-tensorboard \
@@ -293,7 +292,11 @@ sed "s/CONFIG_BATCH_SIZE/${GLOBAL_BATCH_SIZE}/" ${template_json} \
     | sed "s/CONFIG_CL_MIN/${CL_START_SEQLEN}/" \
     | sed "s/CONFIG_CL_MAX/${SEQ_LEN}/" \
     | sed "s/CONFIG_CL_DURATION/${CL_STEP}/" \
-	  > ${config_json}
+    | sed "s|TENSORBOARD_OUTPUT|\"${TENSORBOARD_DIR}\"|" \
+    | sed "s|CSV_OUTPUT|\"${TENSORBOARD_DIR}\"|" \
+    | sed "s|TENSORBOARD_JOB_NAME|\"${NAME}\"|" \
+    | sed "s|CSV_JOB_NAME|\"${NAME}\"|" \
+        > ${config_json}
 
 deepspeed_options=" \
 		    --deepspeed \

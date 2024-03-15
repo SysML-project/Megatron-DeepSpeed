@@ -1,15 +1,12 @@
 {
-  "train_batch_size" : CONFIG_BATCH_SIZE,
+  "train_batch_size": CONFIG_BATCH_SIZE,
   "train_micro_batch_size_per_gpu": CONFIG_MBSIZE,
   "steps_per_print": LOG_INTERVAL,
-
   "zero_optimization": {
     "stage": ZERO_STAGE
   },
-
   "gradient_clipping": 1.0,
   "prescale_gradients": PRESCALE_GRAD,
-
   "fp16": {
     "enabled": CONFIG_FP16_ENABLED,
     "loss_scale": 0,
@@ -18,7 +15,6 @@
     "min_loss_scale": 1,
     "initial_scale_power": 11
   },
-
   "bf16": {
     "enabled": CONFIG_BF16_ENABLED
   },
@@ -33,5 +29,15 @@
       "difficulty_step": 8
     }
   },
-  "wall_clock_breakdown" : false
+  "wall_clock_breakdown": true,
+  "tensorboard": {
+    "enabled": true,
+    "output_path": TENSORBOARD_OUTPUT,
+    "job_name": TENSORBOARD_JOB_NAME
+  },
+  "csv_monitor": {
+    "enabled": true,
+    "output_path": CSV_OUTPUT,
+    "job_name": CSV_JOB_NAME
+  }
 }
