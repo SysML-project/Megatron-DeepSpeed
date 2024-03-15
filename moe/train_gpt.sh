@@ -9,12 +9,15 @@ SEQ_LEN=2048
 ### https://arxiv.org/abs/2005.14165, choose based on
 ### your desired model size or build your own configs
 
+# **NOTE**: See the later comments regarding LR
+
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
 NUM_LAYERS=12
 HIDDEN_SIZE=768
 NUM_ATTN_HEADS=12
 GLOBAL_BATCH_SIZE=256
+
 # LR=6.0e-4
 # MIN_LR=6.0e-5
 
@@ -24,6 +27,7 @@ GLOBAL_BATCH_SIZE=256
 # HIDDEN_SIZE=1024
 # NUM_ATTN_HEADS=16
 # GLOBAL_BATCH_SIZE=256
+
 # LR=3.0e-4
 # MIN_LR=3.0e-5
 
@@ -33,6 +37,7 @@ GLOBAL_BATCH_SIZE=256
 # HIDDEN_SIZE=1536
 # NUM_ATTN_HEADS=16
 # GLOBAL_BATCH_SIZE=256
+
 # LR=2.5e-4
 # MIN_LR=2.5e-5
 
@@ -42,6 +47,7 @@ GLOBAL_BATCH_SIZE=256
 # HIDDEN_SIZE=2048
 # NUM_ATTN_HEADS=16
 # GLOBAL_BATCH_SIZE=512
+
 # LR=2.0e-4
 # MIN_LR=2.0e-5
 
@@ -80,6 +86,10 @@ GLOBAL_BATCH_SIZE=256
 # GLOBAL_BATCH_SIZE=1536
 # LR=0.6e-4
 # MIN_LR=0.6e-5
+###############################################################################
+### ZeRO Configs
+ZERO_STAGE=0
+
 ###############################################################################
 ### Training duration configs
 ## The main termination condition, original GPT-3 paper trains for 300B tokens
@@ -190,12 +200,15 @@ ACTIVATION_CHECKPOINT="false"
 ### Output and data configs
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 host="${HOSTNAME}"
-NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}"
+NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
 if [[ $EP_SIZE -gt 1 ]]; then
     NAME="${NAME}-ep-${EP_SIZE}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
 fi
 if [ "${CL_ENABLED}" = "true" ]; then
     NAME="${NAME}-cl-${CL_START_SEQLEN}-${CL_STEP}"
+fi
+if [ "${ACTIVATION_CHECKPOINT}" = "true" ]; then
+    NAME="${NAME}-activationcheckpointing"
 fi
 
 OUTPUT_BASEPATH=$DIR/output
@@ -284,7 +297,7 @@ config_json="output/configs/ds_config_gpt_${NAME}.json"
 sed "s/CONFIG_BATCH_SIZE/${GLOBAL_BATCH_SIZE}/" ${template_json} \
     | sed "s/CONFIG_MBSIZE/${BATCH_SIZE}/" \
     | sed "s/LOG_INTERVAL/${LOG_INTERVAL}/" \
-    | sed "s/ZERO_STAGE/0/" \
+    | sed "s/ZERO_STAGE/${ZERO_STAGE}/" \
     | sed "s/PRESCALE_GRAD/true/" \
     | sed "s/CONFIG_FP16_ENABLED/true/" \
     | sed "s/CONFIG_BF16_ENABLED/false/" \
