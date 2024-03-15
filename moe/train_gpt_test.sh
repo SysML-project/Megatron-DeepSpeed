@@ -23,9 +23,9 @@ TRAINING_STEPS=100000
 # Create a new directory for this run
 job_name=gpt125M
 unique_id=${job_name}_$(date +%Y%m%d%H%M%S)_$$
-log_path=output/logs/${unique_id}
+log_path=output/test/${unique_id}
 
-mkdir $log_path
+mkdir -p $log_path
 
 new_ds_config=${log_path}/ds_config.json
 
