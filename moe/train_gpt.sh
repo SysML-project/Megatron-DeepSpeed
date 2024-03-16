@@ -1,6 +1,21 @@
 #!/bin/bash
 DIR=`pwd`
 ###############################################################################
+### System configs
+export PDSH_SSH_ARGS_APPEND="-p 2222"
+# Check if a configuration file path was provided as an argument
+if [ "$#" -eq 1 ]; then
+    echo "Using hostfile at $1"
+    source $1
+    HOST_IP_ADDRESS=$(hostname -I | awk '{print $1}')
+    HOST_ARGS="--hostfile=${HOST_FILE} --ssh_port=2222 --master_addr ${HOST_IP_ADDRESS}"
+    NUM_NODE=$(grep -cve '^\s*$' ${HOST_FILE})
+else
+    HOST_ARGS=""
+    NUM_NODE=1
+fi
+
+###############################################################################
 ### Main configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
@@ -129,9 +144,8 @@ MP_SIZE=1
 ## Currently we don't support PP for MoE. To disable PP, set PP_SIZE
 ## to 1 and use the "--no-pipeline-parallel" arg.
 PP_SIZE=1
-NUM_GPUS=$(($(ds_ssh nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)-2))
 NUM_GPUS_PERNODE=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
-NUM_NODE=$(( ${NUM_GPUS} / ${NUM_GPUS_PERNODE} ))
+NUM_GPUS=$(( ${NUM_NODE} * ${NUM_GPUS_PERNODE} ))
 
 echo $NUM_GPUS GPUS
 echo $NUM_NODE NODES
@@ -327,26 +341,24 @@ deepspeed_options="${deepspeed_options} \
         --deepspeed-activation-checkpointing"
 fi
 
-## When saving checkpoint to a storage with cache, their could be consistency
-## issue of the pointer to latest checkpoint. Here we find the correct pointer
-## and broadcast it to all nodes.
-ITERATION_FILE="$CHECKPOINT_PATH/latest_checkpointed_iteration.txt"
-ITERATION_FILE_2="$CHECKPOINT_PATH/latest"
-ITERATION=0
-for (( node = 0; node <= NUM_NODE-1; node++ ))
-do
-    if $(ssh -q worker-"$node" "test -f \"$ITERATION_FILE\""); then
-        LOCAL_ITERATION=$(ssh -q worker-"$node" cat $ITERATION_FILE)
-        ITERATION=$(( ${LOCAL_ITERATION} > ${ITERATION} ? ${LOCAL_ITERATION} :  ${ITERATION} ))
-    fi
-done
-if [[ $ITERATION -gt 0 ]]; then
-    ITERATION_2="global_step${ITERATION}"
-    ds_ssh "echo $ITERATION > $ITERATION_FILE"
-    ds_ssh "echo $ITERATION_2 > $ITERATION_FILE_2"
+# Copy the config file to all remote notes
+if [[ -n $HOST_FILE ]]; then
+    while IFS= read -r line; do
+        SERVER_IP=$(echo $line | awk '{print $1}')
+        ssh -p 2222 deepspeed@${SERVER_IP} "mkdir -p ${OUTPUT_BASEPATH}/configs/" < /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Failed to create directory on $SERVER_IP."
+            exit
+        fi
+        scp -P 2222 $config_json deepspeed@${SERVER_IP}:${OUTPUT_BASEPATH}/configs/ < /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Failed to copy config to $SERVER_IP."
+            exit
+        fi
+    done < ${HOST_FILE}
 fi
 
-run_cmd="deepspeed ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
+run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}
 set +x

@@ -42,6 +42,22 @@ echo "JOB ID ${unique_id}"
 echo "LOGGING METRICS TO ${log_path}"
 echo "USING DS CONFIG ${new_ds_config}"
 
+# Copy the config file to all remote notes
+if [[ -n $HOST_FILE ]]; then
+    while IFS= read -r line; do
+        SERVER_IP=$(echo $line | awk '{print $1}')
+        ssh -p 2222 deepspeed@${SERVER_IP} "mkdir -p /workspace/Megatron-DeepSpeed/moe/${log_path}" < /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Failed to create directory on $SERVER_IP."
+            exit
+        fi
+        scp -P 2222 ${new_ds_config} deepspeed@${SERVER_IP}:/workspace/Megatron-DeepSpeed/moe/${log_path} < /dev/null
+        if [ $? -ne 0 ]; then
+            echo "Failed to copy config to $SERVER_IP."
+            exit
+        fi
+    done < ${HOST_FILE}
+fi
 # Model hyperparameters.
 MODEL_ARGS="\
 --num-layers 12 \
@@ -86,7 +102,7 @@ OUTPUT_ARGS="\
 DS_ARGS="\
 --deepspeed \
 --zero-stage 0 \
---deepspeed_config ${new_ds_config}
+--deepspeed_config /workspace/Megatron-DeepSpeed/moe/${new_ds_config}
 "
 deepspeed $HOST_ARGS ../pretrain_gpt.py \
     $MODEL_ARGS \
