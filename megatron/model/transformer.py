@@ -965,7 +965,9 @@ class ParallelTransformerLayer(MegatronModule):
                                drop_tokens=args.moe_token_dropping,
                                use_tutel=args.use_tutel,
                                enable_expert_tensor_parallelism=enable_expert_tensor_parallelism,
-                               top2_2nd_expert_sampling=args.moe_top2_2nd_expert_sampling)
+                               top2_2nd_expert_sampling=args.moe_top2_2nd_expert_sampling,
+                               log_expert_selection=args.log_moe_expert_selection,
+                               log_expert_selection_dir=args.log_moe_expert_selection_dir)
 
         # Set bias+dropout+add fusion grad_enable execution handler.
         TORCH_MAJOR = int(torch.__version__.split('.')[0])

@@ -15,8 +15,13 @@ else
     NUM_NODE=1
 fi
 
+# Set to 1 to log expert selection.
+# WARNING: This creates very large CSVs and may slow down
+# training
+log_expert_selection=0
+
 ###############################################################################
-### Main configs
+### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
 
@@ -304,6 +309,12 @@ fi
 if [ "${MOE_DROP_TOKEN}" = "false" ]; then
 megatron_options="${megatron_options} \
         --disable-moe-token-dropping"
+fi
+
+if [ $log_expert_selection -ne 0 ]; then
+megatron_options="${megatron_options} \
+        --log-moe-expert-selection \
+        --log-moe-expert-selection-dir ${TENSORBOARD_DIR}"
 fi
 
 template_json="configs/ds_config_gpt_TEMPLATE.json"

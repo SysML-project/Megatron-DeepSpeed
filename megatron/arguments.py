@@ -44,6 +44,7 @@ def parse_args(extra_args_provider=None, ignore_unknown_args=False):
     parser = _add_inference_args(parser)
     parser = _add_transformer_engine_args(parser)
     parser = _add_retro_args(parser)
+    parser = _add_adaptive_moe_args(parser)
 
     # Custom arguments.
     if extra_args_provider is not None:
@@ -1528,4 +1529,14 @@ def _add_distillation_args(parser):
     group.add_argument('--load-teacher', type=str, default=None,
                        help='Directory containing a teacher model checkpoint.')
 
+    return parser
+
+def _add_adaptive_moe_args(parser):
+    group = parser.add_argument_group("Adaptive MoE")
+    group.add_argument('--log-moe-expert-selection', 
+                       default=False, action='store_true',
+                       help='Log which experts were selected for each batch.')
+    group.add_argument('--log-moe-expert-selection-dir', 
+                       default=None, type=str,
+                       help='Directory to log CSVs for expert selections')
     return parser
