@@ -24,6 +24,7 @@ log_expert_selection=0
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
+SEQ_LEN=512
 
 ### The "GPT-3 XXX" below are configs from GPT-3 paper
 ### https://arxiv.org/abs/2005.14165, choose based on
@@ -106,9 +107,6 @@ GLOBAL_BATCH_SIZE=256
 # GLOBAL_BATCH_SIZE=1536
 # LR=0.6e-4
 # MIN_LR=0.6e-5
-###############################################################################
-### ZeRO Configs
-ZERO_STAGE=0
 
 ###############################################################################
 ### Training duration configs
@@ -155,17 +153,52 @@ NUM_GPUS=$(( ${NUM_NODE} * ${NUM_GPUS_PERNODE} ))
 echo $NUM_GPUS GPUS
 echo $NUM_NODE NODES
 
-###############################################################################
-### MoE configs
-## Number of experts. EP_SIZE 1 means dense model without MoE
-# EP_SIZE=1
-EP_SIZE=4
 
-if [[ $EP_SIZE -gt $NUM_GPUS ]]; then
-    EP_PARALLEL_SIZE=$NUM_GPUS
-else
-    EP_PARALLEL_SIZE=$EP_SIZE
+###############################################################################
+### SYMI MoE configs ##########################################################
+###############################################################################
+
+## Enable adaptive expert replication
+ADAPTIVE_MOE="false"
+## Initial expert placement under adaptive replication
+INITIAL_PLACEMENT="uniform"
+
+## ZeRO optimizer stage
+ZERO_STAGE=1
+
+## EXPERTS is the number of expert instances (1 means dense model without MoE).
+EXPERTS=8
+if [[ $EXPERTS -lt $NUM_GPUS ]]; then
+    echo "ERROR: EXPERTS should be larger than NUM_GPUS"
+    exit
 fi
+
+## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
+EP_PARALLEL_SIZE=4
+## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for the adaptive baselines.
+
+# FIXME: deepspeed does not support tuning EDP groups
+# if [[ $ADAPTIVE_MOE == "true" ]]; then
+#     EP_PARALLEL_SIZE=$NUM_GPUS
+# fi
+EP_PARALLEL_SIZE=$NUM_GPUS
+
+## Coefficient for MoE loss (load balancing loss)
+## Megatron: 0.01 works well for 1.3B MoE-128 model
+MLC=0.01
+
+## Capacity inputs have minor effect to adaptive baselines
+## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
+## Larger capacity factor or disabling capacity limit could improve training
+## convergence, but will also reduce training throughput.
+MOE_TRAIN_CAP_FACTOR=1.0
+MOE_MIN_CAP=4
+MOE_DROP_TOKEN="true"
+# MOE_DROP_TOKEN="false"
+
+###############################################################################
+###############################################################################
+
 
 ## Original GPT-3 model always set min LR at 10% of max LR. For MoE model, we
 ## found that lower LR and min LR (than the base dense model) helps.
@@ -175,19 +208,12 @@ fi
 LR=4.5e-4
 MIN_LR=4.5e-06
 
-## Coefficient for MoE loss. We find that 0.01 is a good value at least for
-## 1.3B MoE-128 model
-MLC=0.01
-
-## Below configs adjust the MoE expert token capacity limit during training and
+## Below configs adjust the MoE expert token capacity limit during eval
 ## eval. To completely disable capacity limit, set MOE_DROP_TOKEN to false.
 ## Larger capacity factor or disabling capacity limit could improve training
 ## convergence, but will also reduce training throughput.
-MOE_TRAIN_CAP_FACTOR=1.0
 MOE_EVAL_CAP_FACTOR=1.0
-MOE_MIN_CAP=4
-MOE_DROP_TOKEN="true"
-# MOE_DROP_TOKEN="false"
+
 ###############################################################################
 ### Curriculum learning (CL) configs
 ## Enable/disable CL
@@ -220,8 +246,8 @@ ACTIVATION_CHECKPOINT="false"
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 host="${HOSTNAME}"
 NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
-if [[ $EP_SIZE -gt 1 ]]; then
-    NAME="${NAME}-ep-${EP_SIZE}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
+if [[ $EXPERTS -gt 1 ]]; then
+    NAME="${NAME}-ep-${EXPERTS}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
 fi
 if [ "${CL_ENABLED}" = "true" ]; then
     NAME="${NAME}-cl-${CL_START_SEQLEN}-${CL_STEP}"
@@ -258,7 +284,7 @@ megatron_options=" \
         --adam-beta2 0.95 \
         --tensor-model-parallel-size ${MP_SIZE} \
         --moe-expert-parallel-size ${EP_PARALLEL_SIZE} \
-        --num-experts ${EP_SIZE} \
+        --num-experts ${EXPERTS} \
         --moe-loss-coeff ${MLC} \
         --moe-train-capacity-factor ${MOE_TRAIN_CAP_FACTOR} \
         --moe-eval-capacity-factor ${MOE_EVAL_CAP_FACTOR} \
@@ -301,7 +327,7 @@ megatron_options="${megatron_options} \
         --checkpoint-activations"
 fi
 
-if [[ $EP_SIZE -gt 1 ]]; then
+if [[ $EXPERTS -gt 1 ]]; then
 megatron_options="${megatron_options} \
         --create-moe-param-group"
 fi
@@ -342,7 +368,7 @@ deepspeed_options=" \
 		    --pipeline-model-parallel-size ${PP_SIZE}"
 
 # Currently MoE is not compatible with pipeline parallel
-if [[ $EP_SIZE -gt 1 ]]; then
+if [[ $EXPERTS -gt 1 ]]; then
 deepspeed_options="${deepspeed_options} \
         --no-pipeline-parallel"
 fi
