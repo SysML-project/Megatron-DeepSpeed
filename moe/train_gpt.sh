@@ -115,7 +115,7 @@ GLOBAL_BATCH_SIZE=256
 TRAIN_TOKENS=300000000
 # TRAIN_TOKENS=330000000000
 
-## TRAIN_ITERS is another termination condition and also affect the number of 
+## TRAIN_ITERS is another termination condition and also affect the number of
 ## data samples to be indexed. Since we want to reach the TRAIN_TOKENS
 ## above, and techniques like curriculum learning has less token in some steps,
 ## so we just set this config large enough to make sure we have enough
@@ -158,29 +158,43 @@ echo $NUM_NODE NODES
 ### SYMI MoE configs ##########################################################
 ###############################################################################
 
+## Baselines
+#          | ADAPTIVE_MOE | BIND_OPTIMIZER | ZERO_STAGE
+# ---------+--------------+----------------+------------
+# SYMI     |     true     |      false     |     1
+# FlexZeRO |     true     |      true      |     1
+# FlexMoE  |     true     |      true      |     0
+# DS-ZeRO  |     false    |      true      |     1
+# DS-GPU   |     false    |      true      |     0
+
 ## Enable adaptive expert replication
-ADAPTIVE_MOE="false"
-## Initial expert placement under adaptive replication
-INITIAL_PLACEMENT="uniform"
+# ADAPTIVE_MOE="false"
+ADAPTIVE_MOE="true"
+
+## Bind the optimizer placement with to the experts
+BIND_OPTIMIZER="false"
+# BIND_OPTIMIZER="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=8
+EXPERTS=4
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
+## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
+EXPERT_CLASSES=3
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
-EP_PARALLEL_SIZE=4
-## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for the adaptive baselines.
-
-# FIXME: deepspeed does not support tuning EDP groups
+## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
+# EP_PARALLEL_SIZE=4
 # if [[ $ADAPTIVE_MOE == "true" ]]; then
 #     EP_PARALLEL_SIZE=$NUM_GPUS
 # fi
+### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
+### This used to work. Megatron should have some assert somewhere
 EP_PARALLEL_SIZE=$NUM_GPUS
 
 ## Coefficient for MoE loss (load balancing loss)
@@ -247,7 +261,7 @@ current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 host="${HOSTNAME}"
 NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
 if [[ $EXPERTS -gt 1 ]]; then
-    NAME="${NAME}-ep-${EXPERTS}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
+    NAME="${NAME}-expi-${EXPERTS}-expc-${EXPERT_CLASSES}-ada-${ADAPTIVE_MOE}-bindopt-${BIND_OPTIMIZER}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
 fi
 if [ "${CL_ENABLED}" = "true" ]; then
     NAME="${NAME}-cl-${CL_START_SEQLEN}-${CL_STEP}"
@@ -262,7 +276,7 @@ mkdir -p "${OUTPUT_BASEPATH}/checkpoint/"
 mkdir -p "${OUTPUT_BASEPATH}/log/"
 mkdir -p "${OUTPUT_BASEPATH}/configs/"
 TENSORBOARD_DIR="${OUTPUT_BASEPATH}/tensorboard/${NAME}_${host}_${current_time}"
-mkdir -p ${TENSORBOARD_DIR} 
+mkdir -p ${TENSORBOARD_DIR}
 ## Note that for MoE model with billion-scale base model, the checkpoint can be
 ## as large as TB-scale which normal NFS cannot handle efficiently.
 CHECKPOINT_PATH="${OUTPUT_BASEPATH}/checkpoint/${NAME}"
@@ -277,7 +291,7 @@ data_options=" \
          --merge-file ${MERGE_PATH} \
          --data-path ${DATA_PATH} \
          --data-impl mmap"
-        
+
 megatron_options=" \
         --override-opt_param-scheduler \
         --adam-beta1 0.9 \
@@ -285,6 +299,9 @@ megatron_options=" \
         --tensor-model-parallel-size ${MP_SIZE} \
         --moe-expert-parallel-size ${EP_PARALLEL_SIZE} \
         --num-experts ${EXPERTS} \
+        --num-experts-classes ${EXPERT_CLASSES} \
+        --adaptive-expert-replication ${ADAPTIVE_MOE} \
+        --bind-optimizer ${BIND_OPTIMIZER} \
         --moe-loss-coeff ${MLC} \
         --moe-train-capacity-factor ${MOE_TRAIN_CAP_FACTOR} \
         --moe-eval-capacity-factor ${MOE_EVAL_CAP_FACTOR} \
