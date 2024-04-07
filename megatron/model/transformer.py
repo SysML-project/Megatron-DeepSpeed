@@ -854,7 +854,7 @@ def bias_dropout_add_fused_inference(x: torch.Tensor,
                                      prob: float) -> torch.Tensor:
     return bias_dropout_add(x, bias, residual, prob, False)
 
-def get_initial_placement(expert_clacces: int, expert_instances: int, local_experts: int):
+def get_initial_placement(expert_instances: int, expert_clacces: int, local_experts: int):
     if local_experts == 2 and expert_instances == 4 and expert_clacces == 3:
         return [[[0, 0]], [[0], [1]]]
     else:
