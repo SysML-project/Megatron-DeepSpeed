@@ -1535,7 +1535,7 @@ def _add_adaptive_moe_args(parser):
     group = parser.add_argument_group("Adaptive MoE")
     group.add_argument('--num-expert-classes', type=int, default=1,
                        help='Number of expert classes.')
-    group.add_argument('--adaptive-expert_replication', default=False, action='store_true',
+    group.add_argument('--adaptive-expert-replication', default=False, action='store_true',
                        help='Enable adaptive expert replication.')
     group.add_argument('--bind-optimizer', default=False, action='store_true',
                        help='BBind the optimizer placement with to the experts.')

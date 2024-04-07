@@ -354,7 +354,7 @@ fi
 if [ "${ADAPTIVE_MOE}" = "true" ]; then
 megatron_options="${megatron_options} \
         --adaptive-expert-replication \
-        --num-experts-classes ${EXPERT_CLASSES}"
+        --num-expert-classes ${EXPERT_CLASSES}"
 fi
 
 if [ "${BIND_OPTIMIZER}" = "true" ]; then
