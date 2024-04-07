@@ -854,6 +854,11 @@ def bias_dropout_add_fused_inference(x: torch.Tensor,
                                      prob: float) -> torch.Tensor:
     return bias_dropout_add(x, bias, residual, prob, False)
 
+def get_initial_placement(expert_clacces: int, expert_instances: int, local_experts: int):
+    if local_experts == 2 and expert_instances == 4 and expert_clacces == 3:
+        return [[[0, 0]], [[0], [1]]]
+    else:
+        raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_clacces} expert classes")
 
 class ParallelTransformerLayer(MegatronModule):
     """A single transformer layer.
@@ -966,6 +971,8 @@ class ParallelTransformerLayer(MegatronModule):
                                use_tutel=args.use_tutel,
                                enable_expert_tensor_parallelism=enable_expert_tensor_parallelism,
                                top2_2nd_expert_sampling=args.moe_top2_2nd_expert_sampling,
+                               adaptive_expert_replication=args.adaptive_expert_replication,
+                               expert_data_parallel_groups=get_initial_placement(self.num_experts, args.num_experts_classes, self.num_experts / args.moe_expert_parallel_size),
                                log_expert_selection=args.log_moe_expert_selection,
                                log_expert_selection_dir=args.log_moe_expert_selection_dir)
 
