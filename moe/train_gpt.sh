@@ -299,9 +299,6 @@ megatron_options=" \
         --tensor-model-parallel-size ${MP_SIZE} \
         --moe-expert-parallel-size ${EP_PARALLEL_SIZE} \
         --num-experts ${EXPERTS} \
-        --num-experts-classes ${EXPERT_CLASSES} \
-        --adaptive-expert-replication ${ADAPTIVE_MOE} \
-        --bind-optimizer ${BIND_OPTIMIZER} \
         --moe-loss-coeff ${MLC} \
         --moe-train-capacity-factor ${MOE_TRAIN_CAP_FACTOR} \
         --moe-eval-capacity-factor ${MOE_EVAL_CAP_FACTOR} \
@@ -352,6 +349,17 @@ fi
 if [ "${MOE_DROP_TOKEN}" = "false" ]; then
 megatron_options="${megatron_options} \
         --disable-moe-token-dropping"
+fi
+
+if [ "${ADAPTIVE_MOE}" = "true" ]; then
+megatron_options="${megatron_options} \
+        --adaptive-expert-replication \
+        --num-experts-classes ${EXPERT_CLASSES}"
+fi
+
+if [ "${BIND_OPTIMIZER}" = "true" ]; then
+megatron_options="${megatron_options} \
+        --bind-optimizer"
 fi
 
 if [ $log_expert_selection -ne 0 ]; then
