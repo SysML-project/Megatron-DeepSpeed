@@ -178,6 +178,9 @@ BIND_OPTIMIZER="false"
 ## ZeRO optimizer stage
 ZERO_STAGE=1
 
+## Construct an MoE layer every EXPERT_INTERVAL layers
+EXPERT_INTERVAL=2
+
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
 EXPERTS=4
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
@@ -297,6 +300,7 @@ megatron_options=" \
         --adam-beta1 0.9 \
         --adam-beta2 0.95 \
         --tensor-model-parallel-size ${MP_SIZE} \
+        --expert-interval ${EXPERT_INTERVAL} \
         --moe-expert-parallel-size ${EP_PARALLEL_SIZE} \
         --num-experts ${EXPERTS} \
         --moe-loss-coeff ${MLC} \
@@ -420,7 +424,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
-run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
+run_cmd="NCCL_DEBUG=INFO deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}
 set +x

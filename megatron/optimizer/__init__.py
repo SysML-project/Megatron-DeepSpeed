@@ -13,6 +13,7 @@ from megatron import get_args
 from .distrib_optimizer import DistributedOptimizer
 from .grad_scaler import ConstantGradScaler, DynamicGradScaler
 from .optimizer import Float16OptimizerWithFloat16Params, FP32Optimizer
+from deepspeed.utils import logger
 
 
 def get_param_groups(modules,
@@ -68,7 +69,8 @@ def get_param_groups(modules,
 def get_megatron_optimizer(model,
                            no_weight_decay_cond=None,
                            scale_lr_cond=None,
-                           lr_mult=1.0):
+                           lr_mult=1.0,
+                           remote_optimizer=None):
     args = get_args()
 
     # Base optimizer.
@@ -76,9 +78,14 @@ def get_megatron_optimizer(model,
                                     no_weight_decay_cond,
                                     scale_lr_cond,
                                     lr_mult)
+
     if args.create_moe_param_group:
         from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
-        param_groups = split_params_into_different_moe_groups_for_optimizer(param_groups)
+        if args.adaptive_expert_replication:
+            assert remote_optimizer is not None, 'remote_optimizer was set to None'
+            param_groups = remote_optimizer.detach_and_clone_moe_params(model, param_groups)
+        else:
+            param_groups = split_params_into_different_moe_groups_for_optimizer(param_groups)
 
     if args.cpu_optimizer:
         assert args.optimizer == 'adam', 'CPU offloading is for Adam'

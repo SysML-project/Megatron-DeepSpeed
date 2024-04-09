@@ -47,9 +47,11 @@ import deepspeed
 from deepspeed.accelerator import get_accelerator
 from deepspeed.compression.compress import init_compression, redundancy_clean
 from deepspeed.runtime.data_pipeline.data_routing.helper import convert_to_random_ltd
+from deepspeed.symi.remote_optimizer import RemoteShardedOptimizer
 from megatron.model.transformer import ParallelTransformerLayer
 
 from deepspeed import comm as dist
+from deepspeed.utils import logger
 
 try:
     import wandb
@@ -527,6 +529,7 @@ def setup_model_and_optimizer(model_provider_func,
     # initialize the compression here
     student_global_steps = 0
     if args.kd or args.mos:
+        assert False, "We don't support knowledge distillation or MoS"
         model, _, _, _ = deepspeed.initialize(
                 model=model[0],
                 args=args,
@@ -542,6 +545,7 @@ def setup_model_and_optimizer(model_provider_func,
         print_rank_0('***>>>>> Student model, global step:{}'.format(student_global_steps))
 
     if args.compression_training:
+        assert False, "We don't support compression training"
         model, _, _, _ = deepspeed.initialize(
             model=model[0],
             args=args,
@@ -554,6 +558,10 @@ def setup_model_and_optimizer(model_provider_func,
     unwrapped_model = unwrap_model(model,
                                    (torchDDP, LocalDDP, Float16Module))
 
+    remote_optimizer = None
+    if args.adaptive_expert_replication:
+        remote_optimizer = RemoteShardedOptimizer(torch.distributed.get_rank(), torch.distributed.get_world_size(), args.bind_optimizer)
+
     if args.inference:
         optimizer = None
         opt_param_scheduler = None
@@ -561,8 +569,10 @@ def setup_model_and_optimizer(model_provider_func,
         if teacher:
             optimizer = None
         else:
+            logger.debug("Initialize megatron optimizer using Symi's remote optimizer")
             optimizer = get_megatron_optimizer(model, no_wd_decay_cond,
-                                               scale_lr_cond, lr_mult)
+                                               scale_lr_cond, lr_mult,
+                                               remote_optimizer)
         # opt_param_scheduler is the old lr_scheduler plus weight decay scheduling
         opt_param_scheduler = get_optimizer_param_scheduler(optimizer)
 
@@ -570,6 +580,7 @@ def setup_model_and_optimizer(model_provider_func,
         print_rank_0("DeepSpeed is enabled.")
         pp = mpu.get_pipeline_model_parallel_world_size()
         if args.data_efficiency_curriculum_learning and build_train_valid_test_datasets_provider is not None:
+            assert False, "We don't support curriculum learning"
             train_ds = None
             # Only need to build dataset on tp rank 0 since Megatron has the
             # broadcast_data() function that broadcast data from tp rank 0.
@@ -613,6 +624,9 @@ def setup_model_and_optimizer(model_provider_func,
                 mpu=mpu if args.no_pipeline_parallel else None,
                 config=args.deepspeed_config_dict,
             )
+            if args.adaptive_expert_replication:
+                remote_optimizer.initialize(model)
+
         if isinstance(model, deepspeed.PipelineEngine):
             # hack to get batch_fn from pretrain_gpt.py
             model.set_batch_fn(model.module._megatron_batch_fn)
