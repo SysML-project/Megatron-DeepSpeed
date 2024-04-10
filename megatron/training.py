@@ -160,11 +160,16 @@ def pretrain(train_valid_test_dataset_provider,
         if "compression_training" in args.deepspeed_config_dict:
             args.compression_training = True
 
+    remote_optimizer = None
+    if args.adaptive_expert_replication:
+        remote_optimizer = RemoteShardedOptimizer(torch.distributed.get_rank(), torch.distributed.get_world_size(), args.bind_optimizer)
+
     # Model, optimizer, and learning rate.
     timers('model-and-optimizer-setup', log_level=0).start(barrier=True)
     model, optimizer, opt_param_scheduler = setup_model_and_optimizer(
         model_provider, model_type, teacher=False, data_post_process=data_post_process,
-        build_train_valid_test_datasets_provider=train_valid_test_dataset_provider)
+        build_train_valid_test_datasets_provider=train_valid_test_dataset_provider,
+        remote_optimizer=remote_optimizer)
     timers('model-and-optimizer-setup').stop()
     print_datetime('after model, optimizer, and learning rate '
                    'scheduler are built')
@@ -228,7 +233,8 @@ def pretrain(train_valid_test_dataset_provider,
             iteration = train(forward_step_func,
                             model, optimizer, opt_param_scheduler,
                             train_data_iterator, valid_data_iterator,
-                            process_non_loss_data_func)
+                            process_non_loss_data_func,
+                            remote_optimizer=remote_optimizer)
 
         print_datetime('after training is done')
         # Clean the model
@@ -520,7 +526,8 @@ def setup_model_and_optimizer(model_provider_func,
                               lr_mult=1.0,
                               teacher=False,
                               data_post_process=None,
-                              build_train_valid_test_datasets_provider=None):
+                              build_train_valid_test_datasets_provider=None,
+                              remote_optimizer=None):
     """Setup model and optimizer."""
     args = get_args()
 
@@ -558,10 +565,6 @@ def setup_model_and_optimizer(model_provider_func,
     unwrapped_model = unwrap_model(model,
                                    (torchDDP, LocalDDP, Float16Module))
 
-    remote_optimizer = None
-    if args.adaptive_expert_replication:
-        remote_optimizer = RemoteShardedOptimizer(torch.distributed.get_rank(), torch.distributed.get_world_size(), args.bind_optimizer)
-
     if args.inference:
         optimizer = None
         opt_param_scheduler = None
@@ -569,7 +572,8 @@ def setup_model_and_optimizer(model_provider_func,
         if teacher:
             optimizer = None
         else:
-            logger.debug("Initialize megatron optimizer using Symi's remote optimizer")
+            if remote_optimizer is not None:
+                logger.info("Initialize megatron optimizer using Symi remote optimizer")
             optimizer = get_megatron_optimizer(model, no_wd_decay_cond,
                                                scale_lr_cond, lr_mult,
                                                remote_optimizer)
@@ -625,6 +629,7 @@ def setup_model_and_optimizer(model_provider_func,
                 config=args.deepspeed_config_dict,
             )
             if args.adaptive_expert_replication:
+                logger.info("Initializing remote optimizer")
                 remote_optimizer.initialize(model)
 
         if isinstance(model, deepspeed.PipelineEngine):
@@ -671,7 +676,8 @@ def setup_model_and_optimizer(model_provider_func,
 
 
 def train_step(forward_step_func, data_iterator,
-               model, optimizer, opt_param_scheduler, config):
+               model, optimizer, opt_param_scheduler, config,
+               remote_optimizer=None):
     """Single training step."""
     args = get_args()
     timers = get_timers()
@@ -1161,7 +1167,7 @@ def save_checkpoint_and_time(iteration, model, optimizer, opt_param_scheduler):
 
 def train(forward_step_func, model, optimizer, opt_param_scheduler,
           train_data_iterator, valid_data_iterator,
-          process_non_loss_data_func):
+          process_non_loss_data_func, remote_optimizer=None):
     """Train the model function."""
     args = get_args()
     timers = get_timers()
@@ -1221,7 +1227,8 @@ def train(forward_step_func, model, optimizer, opt_param_scheduler,
                        model,
                        optimizer,
                        opt_param_scheduler,
-                       config)
+                       config,
+                       remote_optimizer=remote_optimizer)
         iteration += 1
         args.iteration = iteration
         new_samples = mpu.get_data_parallel_world_size() * \

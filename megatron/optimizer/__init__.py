@@ -82,6 +82,7 @@ def get_megatron_optimizer(model,
     if args.create_moe_param_group:
         from deepspeed.moe.utils import split_params_into_different_moe_groups_for_optimizer
         if args.adaptive_expert_replication:
+            logger.info('Detaching and cloning MoE params for Symi remote optimizer')
             assert remote_optimizer is not None, 'remote_optimizer was set to None'
             param_groups = remote_optimizer.detach_and_clone_moe_params(model, param_groups)
         else:
