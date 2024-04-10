@@ -3,7 +3,14 @@
   "train_micro_batch_size_per_gpu": CONFIG_MBSIZE,
   "steps_per_print": LOG_INTERVAL,
   "zero_optimization": {
-    "stage": ZERO_STAGE
+    "stage": ZERO_STAGE,
+    "allgather_partitions": ZERO_ALLGATHER_PARTITIONS,
+    "reduce_scatter": ZERO_REDUCESCATTER,
+    "allgather_bucket_size": ZERO_ALLGATHER_BUCKET_SIZE,
+    "reduce_bucket_size": ZERO_REDUCE_BUCKET_SIZE,
+    "overlap_comm": ZERO_OVERLAP_COMM,
+    "contiguous_gradients": ZERO_CONTIGUOUS_GRADIENTS,
+    "cpu_offload": ZERO_CPU_OFFLOAD
   },
   "gradient_clipping": 1.0,
   "prescale_gradients": PRESCALE_GRAD,
