@@ -748,8 +748,14 @@ def train_step(forward_step_func, data_iterator,
         increment = get_num_microbatches() * \
                     args.micro_batch_size * \
                     args.data_parallel_size
-        model[0].step(lr_kwargs={'increment': increment})
-        update_successful = model[0].was_step_applied()
+        if args.adaptive_expert_replication:
+            assert remote_optimizer is not None, "Remote optimizer is not initialized"
+            remote_optimizer.step(increment)
+            remote_optimizer.zero_grad()
+            update_successful = True
+        else:
+            model[0].step(lr_kwargs={'increment': increment})
+            update_successful = model[0].was_step_applied()
     else:
         update_successful, grad_norm, num_zeros_in_grad = optimizer.step(args, timers)
     timers('optimizer').stop()
