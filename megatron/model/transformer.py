@@ -854,7 +854,10 @@ def bias_dropout_add_fused_inference(x: torch.Tensor,
                                      prob: float) -> torch.Tensor:
     return bias_dropout_add(x, bias, residual, prob, False)
 
-def get_initial_placement(expert_instances: int, expert_clacces: int, local_experts: int):
+def get_initial_placement(expert_instances: int, expert_clacces: int, local_experts: int, adaptive_expert_replication: bool = False):
+    if not adaptive_expert_replication:
+        return {}
+
     # TODO: Don't hardcode this, spead experts evenly systematically
     if (local_experts == 2 and expert_instances == 4 and expert_clacces == 3) or \
        (local_experts == 4 and expert_instances == 8 and expert_clacces == 6):
@@ -977,7 +980,7 @@ class ParallelTransformerLayer(MegatronModule):
                                enable_expert_tensor_parallelism=enable_expert_tensor_parallelism,
                                top2_2nd_expert_sampling=args.moe_top2_2nd_expert_sampling,
                                adaptive_expert_replication=args.adaptive_expert_replication,
-                               expert_data_parallel_groups=get_initial_placement(self.num_experts, args.num_expert_classes, self.num_experts / args.moe_expert_parallel_size),
+                               expert_data_parallel_groups=get_initial_placement(self.num_experts, args.num_expert_classes, self.num_experts / args.moe_expert_parallel_size, args.adaptive_expert_replication),
                                log_expert_selection=args.log_moe_expert_selection,
                                log_expert_selection_dir=args.log_moe_expert_selection_dir)
 
