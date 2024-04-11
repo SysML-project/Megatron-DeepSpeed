@@ -340,9 +340,11 @@ megatron_options=" \
         --log-validation-ppl-to-tensorboard \
         --tensorboard-dir ${TENSORBOARD_DIR}"
 
+CPU_OFFLOAD="false"
 if [ "${ZERO_STAGE}" -gt "0" ]; then
 megatron_options="${megatron_options} \
         --cpu-optimizer"
+CPU_OFFLOAD="true"
 fi
 
 if [ "${ACTIVATION_CHECKPOINT}" = "true" ]; then
@@ -389,7 +391,7 @@ sed "s/CONFIG_BATCH_SIZE/${GLOBAL_BATCH_SIZE}/" ${template_json} \
     | sed "s/ZERO_REDUCE_BUCKET_SIZE/50000000/" \
     | sed "s/ZERO_OVERLAP_COMM/true/" \
     | sed "s/ZERO_CONTIGUOUS_GRADIENTS/true/" \
-    | sed "s/ZERO_CPU_OFFLOAD/true/" \
+    | sed "s/ZERO_CPU_OFFLOAD/${CPU_OFFLOAD}/" \
     | sed "s/PRESCALE_GRAD/true/" \
     | sed "s/CONFIG_FP16_ENABLED/true/" \
     | sed "s/CONFIG_BF16_ENABLED/false/" \
