@@ -179,7 +179,7 @@ BIND_OPTIMIZER="false"
 ZERO_STAGE=1
 
 ## Construct an MoE layer every EXPERT_INTERVAL layers
-EXPERT_INTERVAL=2
+EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
 EXPERTS=4
