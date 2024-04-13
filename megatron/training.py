@@ -162,7 +162,7 @@ def pretrain(train_valid_test_dataset_provider,
 
     remote_optimizer = None
     if args.adaptive_expert_replication:
-        remote_optimizer = RemoteShardedOptimizer(torch.distributed.get_rank(), torch.distributed.get_world_size(), args.bind_optimizer)
+        remote_optimizer = RemoteShardedOptimizer(torch.distributed.get_rank(), torch.distributed.get_world_size(), args.cpu_optimizer, args.bind_optimizer)
 
     # Model, optimizer, and learning rate.
     timers('model-and-optimizer-setup', log_level=0).start(barrier=True)
