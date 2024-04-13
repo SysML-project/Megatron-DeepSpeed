@@ -630,7 +630,7 @@ def setup_model_and_optimizer(model_provider_func,
             )
             if args.adaptive_expert_replication:
                 logger.info("Initializing remote optimizer")
-                remote_optimizer.initialize(model)
+                remote_optimizer.initialize(model, optimizer)
 
         if isinstance(model, deepspeed.PipelineEngine):
             # hack to get batch_fn from pretrain_gpt.py
