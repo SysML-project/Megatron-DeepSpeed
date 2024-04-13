@@ -18,13 +18,12 @@ fi
 # Set to 1 to log expert selection.
 # WARNING: This creates very large CSVs and may slow down
 # training
-log_expert_selection=0
+log_expert_selection=1
 
 ###############################################################################
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=512
 
 ### The "GPT-3 XXX" below are configs from GPT-3 paper
 ### https://arxiv.org/abs/2005.14165, choose based on
@@ -112,7 +111,7 @@ GLOBAL_BATCH_SIZE=256
 ### Training duration configs
 ## The main termination condition, original GPT-3 paper trains for 300B tokens
 ## For MoE model, we found sometimes training a bit more to 330B tokens helps
-TRAIN_TOKENS=300000000
+TRAIN_TOKENS=30000000000
 # TRAIN_TOKENS=330000000000
 
 ## TRAIN_ITERS is another termination condition and also affect the number of
@@ -131,9 +130,9 @@ EXIT_DURATION=30000000
 ## no need to readjust when the batch size/seqlen is changed.
 ## Original GPT-3 paper uses 375M warmup tokens and 260B decay tokens.
 ## For MoE model, we found that setting the decay token to 300B helps.
-WARMUP_TOKENS=375000000
+WARMUP_TOKENS=37500000
 # LR_DECAY_TOKENS=260000000000
-LR_DECAY_TOKENS=300000000000
+LR_DECAY_TOKENS=20000000000
 ###############################################################################
 ### Parallelism configs
 ## Micro batch size per GPU
@@ -182,7 +181,7 @@ ZERO_STAGE=0
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=4
+EXPERTS=32
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
@@ -208,7 +207,7 @@ MLC=0.01
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
 ## Larger capacity factor or disabling capacity limit could improve training
 ## convergence, but will also reduce training throughput.
-MOE_TRAIN_CAP_FACTOR=1.0
+MOE_TRAIN_CAP_FACTOR=2.0
 MOE_MIN_CAP=4
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
@@ -246,8 +245,8 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ### Misc configs
 LOG_INTERVAL=1
 EVAL_ITERS=10
-EVAL_INTERVAL=100
-SAVE_INTERVAL=10000
+EVAL_INTERVAL=100000000000000000000000
+SAVE_INTERVAL=10000000000000000000000000
 
 ## Standard deviation for weight initialization
 ## We used 0.014 for 350M/1.3B dense/MoE models, and used 0.01 for 6.7B
@@ -289,8 +288,8 @@ CHECKPOINT_PATH="${OUTPUT_BASEPATH}/checkpoint/${NAME}"
 VOCAB_PATH=../datasets/gpt2-vocab.json
 MERGE_PATH=../datasets/gpt2-merges.txt
 
-DATA_PATH=../datasets/wikitext/wikitext103_text_document
-# DATA_PATH=../datasets/mmlu/mmlu_question_document
+# DATA_PATH=../datasets/wikitext/wikitext103_text_document
+DATA_PATH=../datasets/mmlu/mmlu_question_document
 
 ###############################################################################
 data_options=" \
