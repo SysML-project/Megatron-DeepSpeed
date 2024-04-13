@@ -284,9 +284,11 @@ mkdir -p ${TENSORBOARD_DIR}
 ## as large as TB-scale which normal NFS cannot handle efficiently.
 CHECKPOINT_PATH="${OUTPUT_BASEPATH}/checkpoint/${NAME}"
 
-VOCAB_PATH=../datasets/wikitext/gpt2-vocab.json
-MERGE_PATH=../datasets/wikitext/gpt2-merges.txt
-DATA_PATH=../datasets/wikitext/wikitext103_text_document
+VOCAB_PATH=../datasets/gpt2-vocab.json
+MERGE_PATH=../datasets/gpt2-merges.txt
+
+# DATA_PATH=../datasets/wikitext/wikitext103_text_document
+DATA_PATH=../datasets/mmlu/mmlu_question_document
 
 ###############################################################################
 data_options=" \
