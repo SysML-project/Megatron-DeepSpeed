@@ -391,7 +391,7 @@ sed "s/CONFIG_BATCH_SIZE/${GLOBAL_BATCH_SIZE}/" ${template_json} \
     | sed "s/ZERO_REDUCESCATTER/true/" \
     | sed "s/ZERO_ALLGATHER_BUCKET_SIZE/50000000/" \
     | sed "s/ZERO_REDUCE_BUCKET_SIZE/50000000/" \
-    | sed "s/ZERO_OVERLAP_COMM/true/" \
+    | sed "s/ZERO_OVERLAP_COMM/false/" \
     | sed "s/ZERO_CONTIGUOUS_GRADIENTS/true/" \
     | sed "s/ZERO_CPU_OFFLOAD/${CPU_OFFLOAD}/" \
     | sed "s/PRESCALE_GRAD/true/" \
