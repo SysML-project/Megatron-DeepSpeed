@@ -168,10 +168,10 @@ echo $NUM_NODE NODES
 
 ## Enable adaptive expert replication
 # ADAPTIVE_MOE="false"
-ADAPTIVE_MOE="true"
+ADAPTIVE_MOE="false"
 
 ## Bind the optimizer placement with to the experts
-BIND_OPTIMIZER="false"
+BIND_OPTIMIZER="true"
 # BIND_OPTIMIZER="true"
 
 ## ZeRO optimizer stage
@@ -439,7 +439,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
-run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
+run_cmd="NCCL_DEBUG=INFO deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}
 set +x
