@@ -876,8 +876,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1], [2, 3]],
             ]}
     # 12 nodes
-    elif
-       (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
+    elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
         return { 8: [
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
