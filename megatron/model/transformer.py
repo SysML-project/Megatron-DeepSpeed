@@ -858,14 +858,27 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
     if not adaptive_expert_replication:
         return {}
 
-    # TODO: Don't hardcode this, spead experts evenly systematically
-    if (local_experts == 2 and expert_instances == 4 and expert_classes == 3) or \
-       (local_experts == 4 and expert_instances == 8 and expert_classes == 6) or \
+    # TODO: We hardcode this for now. In the future, systematically spead experts evenly
+    # 2 nodes
+    if (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
+        return { 2: [
+            [[0, 1]], [[0], [1]]
+            ]}
+    # 2 nodes
+    elif (local_experts == 4 and expert_instances == 8 and expert_classes == 6):
+        return { 4: [
+            [[0, 1]], [[0, 1]], [[0], [1]], [[0], [1]]
+            ]}
+    # 4 nodes
+    elif (local_experts == 2 and expert_instances == 8 and expert_classes == 4):
+        return { 2: [
+            [[0, 1], [2, 3]],
+            [[0, 1], [2, 3]],
+            ]}
+    # 12 nodes
+    elif
        (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
-        return {
-            2: [[[0, 1]], [[0], [1]]],
-            4: [[[0, 1]], [[0, 1]], [[0], [1]], [[0], [1]]],
-            8: [
+        return { 8: [
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
@@ -874,8 +887,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-            ]
-            }
+            ]}
     else:
         raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_clacces} expert classes")
 
