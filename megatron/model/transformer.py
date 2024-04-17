@@ -888,7 +888,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
                 [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             ]}
     else:
-        raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_clacces} expert classes")
+        raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_classes} expert classes")
 
 class ParallelTransformerLayer(MegatronModule):
     """A single transformer layer.
