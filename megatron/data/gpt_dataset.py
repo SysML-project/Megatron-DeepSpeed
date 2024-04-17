@@ -16,7 +16,6 @@ from megatron.data.dataset_utils import get_datasets_weights_and_num_samples
 from megatron.data.dataset_utils import get_train_valid_test_split_
 from megatron.data.indexed_dataset import make_dataset as make_indexed_dataset
 
-
 def build_train_valid_test_datasets(data_prefix, data_impl, splits_string,
                                     train_valid_test_num_samples,
                                     seq_length, seed, skip_warmup,
@@ -488,6 +487,10 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
         torch.distributed.get_world_size(group=mpu.get_sequence_parallel_group())):
         print_rank_0("Data index creation unsuccessful, exiting.")
         exit()
+
+    # sleep to avoid race
+    print("***** SLEEP *****")
+    time.sleep(10)
 
     # Load mappings.
     start_time = time.time()
