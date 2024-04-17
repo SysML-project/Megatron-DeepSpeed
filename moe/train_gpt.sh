@@ -18,13 +18,12 @@ fi
 # Set to 1 to log expert selection.
 # WARNING: This creates very large CSVs and may slow down
 # training
-log_expert_selection=0
+log_expert_selection=1
 
 ###############################################################################
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=512
 
 ### The "GPT-3 XXX" below are configs from GPT-3 paper
 ### https://arxiv.org/abs/2005.14165, choose based on
@@ -202,13 +201,13 @@ EP_PARALLEL_SIZE=$NUM_GPUS
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
-MLC=0.01
+MLC=0.001
 
 ## Capacity inputs have minor effect to adaptive baselines
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
 ## Larger capacity factor or disabling capacity limit could improve training
 ## convergence, but will also reduce training throughput.
-MOE_TRAIN_CAP_FACTOR=1.0
+MOE_TRAIN_CAP_FACTOR=2.0
 MOE_MIN_CAP=4
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
