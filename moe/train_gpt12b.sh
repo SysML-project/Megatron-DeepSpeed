@@ -1,4 +1,5 @@
-#!/bin/bash
+#!/bin/bash -x
+set -x
 DIR=`pwd`
 ###############################################################################
 ### System configs
@@ -24,6 +25,7 @@ log_expert_selection=1
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
+SEQ_LEN=1024
 
 ### The "GPT-3 XXX" below are configs from GPT-3 paper
 ### https://arxiv.org/abs/2005.14165, choose based on
@@ -138,7 +140,7 @@ LR_DECAY_TOKENS=300000000000
 ### Parallelism configs
 ## Micro batch size per GPU
 ## Make sure that BATCH_SIZE <= GLOBAL_BATCH_SIZE*PP_SIZE*MP_SIZE/NUM_GPUS
-BATCH_SIZE=4
+BATCH_SIZE=8
 
 ## Model parallelism, 1 is no MP
 MP_SIZE=1
@@ -263,7 +265,7 @@ ACTIVATION_CHECKPOINT="false"
 ### Output and data configs
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 host="${HOSTNAME}"
-NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
+NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-ubs-${BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
 if [[ $EXPERTS -gt 1 ]]; then
     NAME="${NAME}-expi-${EXPERTS}-expc-${EXPERT_CLASSES}-ada-${ADAPTIVE_MOE}-bindopt-${BIND_OPTIMIZER}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
 fi
