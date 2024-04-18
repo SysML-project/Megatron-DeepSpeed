@@ -199,6 +199,7 @@ EXPERT_CLASSES=32
 ### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
 ### This used to work. Megatron should have some assert somewhere
 EP_PARALLEL_SIZE=$NUM_GPUS
+# EP_PARALLEL_SIZE=2
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
@@ -440,6 +441,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
+# NCCL_DEBUG=INFO
 run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}
