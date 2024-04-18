@@ -859,15 +859,20 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
         return {}
 
     # TODO: We hardcode this for now. In the future, systematically spead experts evenly
+    print(f"local_experts: {local_experts}, expert_instances: {expert_instances}, expert_classes: {expert_classes}")
     # 2 nodes
     if (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
         return { 2: [
-            [[0, 1]], [[0], [1]]
+            [[0, 1]],
+            [[0], [1]]
             ]}
     # 2 nodes
     elif (local_experts == 4 and expert_instances == 8 and expert_classes == 6):
         return { 4: [
-            [[0, 1]], [[0, 1]], [[0], [1]], [[0], [1]]
+            [[0, 1]],
+            [[0, 1]],
+            [[0], [1]],
+            [[0], [1]]
             ]}
     # 4 nodes
     elif (local_experts == 2 and expert_instances == 8 and expert_classes == 4):
@@ -875,17 +880,31 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1], [2, 3]],
             [[0, 1], [2, 3]],
             ]}
+    # 8 nodes
+    elif (local_experts == 2 and expert_instances == 16 and expert_classes == 8):
+        return { 2: [
+            [[0, 1], [2, 3], [4, 5], [6, 7]],
+            [[0, 1], [2, 3], [4, 5], [6, 7]],
+            ]}
+    # 8 nodes
+    elif (local_experts == 4 and expert_instances == 32 and expert_classes == 8):
+        return { 4: [
+            [[0, 1, 2, 3], [4, 5, 6, 7]],
+            [[0, 1, 2, 3], [4, 5, 6, 7]],
+            [[0, 1, 2, 3], [4, 5, 6, 7]],
+            [[0, 1, 2, 3], [4, 5, 6, 7]],
+            ]}
     # 12 nodes
     elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
         return { 8: [
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-                [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
+            [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             ]}
     else:
         raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_classes} expert classes")
