@@ -488,9 +488,9 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
         print_rank_0("Data index creation unsuccessful, exiting.")
         exit()
 
-    # sleep to avoid race
-    print("***** SLEEP *****")
-    time.sleep(10)
+    # # sleep to avoid race
+    # print("***** SLEEP *****")
+    # time.sleep(10)
 
     # Load mappings.
     start_time = time.time()
