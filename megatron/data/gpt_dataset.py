@@ -490,7 +490,7 @@ def _build_index_mappings(name, data_prefix, documents, sizes,
 
     # sleep to avoid race
     print("***** SLEEP *****")
-    time.sleep(30)
+    time.sleep(60)
 
     # Load mappings.
     start_time = time.time()
