@@ -466,7 +466,7 @@ class FlashSelfAttentionTriton(torch.nn.Module):
         assert q.is_cuda
         q, k, v = [rearrange(x, 's b ... -> b s ...').contiguous()
                        for x in (q, k, v)]
-        
+
         output = flash_attn_func(q, k, v, None, self.causal)
         output = rearrange(output, 'b s h d -> s b (h d)').contiguous()
         return output
@@ -637,7 +637,7 @@ class ParallelAttention(MegatronModule):
         return hidden_states.reshape(slen, batch,
                                      num_key_value_heads_per_partition * n_rep,
                                      head_dim)
-                                     
+
     def split_tensor(self, mixed_x_layer):
         query_layer = mixed_x_layer[:, :, :, :-2, :].reshape(mixed_x_layer.shape[:2] + (-1, self.hidden_size_per_attention_head))
         key_layer = mixed_x_layer[:, :, :, -2, :]
@@ -865,7 +865,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
         return { 2: [
             [[0, 1]],
             [[0], [1]]
-            ]}
+        ]}
     # 2 nodes
     elif (local_experts == 4 and expert_instances == 8 and expert_classes == 6):
         return { 4: [
@@ -873,19 +873,27 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1]],
             [[0], [1]],
             [[0], [1]]
-            ]}
+        ]}
+    # 2 nodes
+    elif (local_experts == 16 and expert_instances == 32 and expert_classes == 16):
+        return { 16: [
+            [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
+            [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
+            [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
+            [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
+        ]}
     # 4 nodes
     elif (local_experts == 2 and expert_instances == 8 and expert_classes == 4):
         return { 2: [
             [[0, 1], [2, 3]],
             [[0, 1], [2, 3]],
-            ]}
+        ]}
     # 8 nodes
     elif (local_experts == 2 and expert_instances == 16 and expert_classes == 8):
         return { 2: [
             [[0, 1], [2, 3], [4, 5], [6, 7]],
             [[0, 1], [2, 3], [4, 5], [6, 7]],
-            ]}
+        ]}
     # 8 nodes
     elif (local_experts == 4 and expert_instances == 32 and expert_classes == 8):
         return { 4: [
@@ -893,7 +901,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1, 2, 3], [4, 5, 6, 7]],
             [[0, 1, 2, 3], [4, 5, 6, 7]],
             [[0, 1, 2, 3], [4, 5, 6, 7]],
-            ]}
+        ]}
     # 12 nodes
     elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
         return { 8: [
@@ -905,7 +913,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
-            ]}
+        ]}
     else:
         raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_classes} expert classes")
 
@@ -1790,7 +1798,7 @@ class ParallelTransformer(MegatronModule):
                     moe_losses.append(moe_loss)
                 return (x_, *moe_losses)
             return custom_forward
-        
+
         if args.deepspeed and args.deepspeed_activation_checkpointing:
             moe_losses = []
             # Make sure memory is freed.
@@ -1867,7 +1875,7 @@ class ParallelTransformer(MegatronModule):
                                 hidden_states, attention_mask,
                                 encoder_output, enc_dec_attn_mask,
                                 None, None, None, None, rotary_pos_emb)
-                            
+
                     moe_losses.extend(local_moe_losses)
             else:
                 raise ValueError("Invalid activation recompute method.")
