@@ -263,7 +263,7 @@ ACTIVATION_CHECKPOINT="false"
 ### Output and data configs
 current_time=$(date "+%Y.%m.%d-%H.%M.%S")
 host="${HOSTNAME}"
-NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
+NAME="gpt-${MODEL_SIZE}B-lr-${LR}-minlr-${MIN_LR}-bs-${GLOBAL_BATCH_SIZE}-ubs-${BATCH_SIZE}-gpus-${NUM_GPUS}-mp-${MP_SIZE}-pp-${PP_SIZE}-zero-${ZERO_STAGE}"
 if [[ $EXPERTS -gt 1 ]]; then
     NAME="${NAME}-expi-${EXPERTS}-expc-${EXPERT_CLASSES}-ada-${ADAPTIVE_MOE}-bindopt-${BIND_OPTIMIZER}-mlc-${MLC}-cap-${MOE_TRAIN_CAP_FACTOR}-drop-${MOE_DROP_TOKEN}"
 fi

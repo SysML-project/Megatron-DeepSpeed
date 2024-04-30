@@ -23,7 +23,7 @@ log_expert_selection=1
 ###############################################################################
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
-SEQ_LEN=2048
+SEQ_LEN=1024
 
 ### The "GPT-3 XXX" below are configs from GPT-3 paper
 ### https://arxiv.org/abs/2005.14165, choose based on
@@ -138,7 +138,7 @@ LR_DECAY_TOKENS=300000000000
 ### Parallelism configs
 ## Micro batch size per GPU
 ## Make sure that BATCH_SIZE <= GLOBAL_BATCH_SIZE*PP_SIZE*MP_SIZE/NUM_GPUS
-BATCH_SIZE=4
+BATCH_SIZE=8
 
 ## Model parallelism, 1 is no MP
 MP_SIZE=1
@@ -209,7 +209,7 @@ MLC=0.001
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
 ## Larger capacity factor or disabling capacity limit could improve training
 ## convergence, but will also reduce training throughput.
-MOE_TRAIN_CAP_FACTOR=2.0
+MOE_TRAIN_CAP_FACTOR=8.0
 MOE_MIN_CAP=4
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
