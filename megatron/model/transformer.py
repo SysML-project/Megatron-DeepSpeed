@@ -914,6 +914,17 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
         ]}
+    # 16 nodes
+    elif (local_experts == 4 and expert_instances == 16 and expert_classes == 4):
+        return { 1: [
+            [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
+        ]}
+    # 16 nodes
+    elif (local_experts == 8 and expert_instances == 32 and expert_classes == 4):
+        return { 2: [
+            [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
+            [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
+        ]}
     else:
         raise ValueError(f"Not implemented expert placement: {local_experts} local experts, {expert_instances} expert instances, {expert_classes} expert classes")
 
