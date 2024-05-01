@@ -39,7 +39,7 @@ HIDDEN_SIZE=768
 NUM_ATTN_HEADS=2
 GLOBAL_BATCH_SIZE=16
 
-BATCH_SIZE=8
+BATCH_SIZE=4
 
 TRAIN_TOKENS=4000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
@@ -84,13 +84,13 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=32
+EXPERTS=8
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=16
+EXPERT_CLASSES=4
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
@@ -101,7 +101,7 @@ EXPERT_CLASSES=16
 ### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
 ### This used to work. Megatron should have some assert somewhere
 EP_PARALLEL_SIZE=$NUM_GPUS
-EP_PARALLEL_SIZE=1
+EP_PARALLEL_SIZE=2
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
@@ -113,7 +113,7 @@ MLC=0.001
 ## convergence, but will also reduce training throughput.
 MOE_TRAIN_CAP_FACTOR=1.0
 MOE_EVAL_CAP_FACTOR=1.0
-MOE_MIN_CAP=2
+MOE_MIN_CAP=1
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
 
@@ -142,9 +142,9 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ###############################################################################
 ### Misc configs
 LOG_INTERVAL=1
-EVAL_ITERS=0
-EVAL_INTERVAL=1000000000000000000000000000
-SAVE_INTERVAL=1000000000000000000000000000
+EVAL_ITERS=1
+EVAL_INTERVAL=3
+SAVE_INTERVAL=10000000000
 
 ## Standard deviation for weight initialization
 ## We used 0.014 for 350M/1.3B dense/MoE models, and used 0.01 for 6.7B
@@ -336,6 +336,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
+# NCCL_DEBUG=INFO
 run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}
