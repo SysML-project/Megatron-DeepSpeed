@@ -41,7 +41,7 @@ GLOBAL_BATCH_SIZE=16
 
 BATCH_SIZE=8
 
-TRAIN_TOKENS=20000
+TRAIN_TOKENS=4000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
@@ -335,6 +335,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
+# NCCL_DEBUG=INFO
 run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}

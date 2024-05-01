@@ -290,6 +290,13 @@ def forward_step(data_iterator, model):
             moe_losses.append(moe_loss)
     moe_loss = sum(moe_losses) * args.moe_loss_coeff
 
+    print(f"@@ output_tensor size {output_tensor.size()} @ output_tensor: {output_tensor}")
+    print(f"@@ other_losses size {len(other_losses)} @ other_losses: {other_losses}")
+    print(f"@@ moe_losses size {len(moe_losses)} @ moe_losses: {moe_losses}")
+    print(f"@@ moe_loss size {moe_loss.size()} @ moe_loss: {moe_loss}")
+    print(f"@@ loss_mask size {loss_mask.size()} @ loss_mask: {loss_mask}")
+    print(f"@@ mlc: {args.moe_loss_coeff}")
+
     mos_loss = 0
     if args.mos or args.kd:
         assert model.training

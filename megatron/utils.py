@@ -98,8 +98,10 @@ def average_losses_across_data_parallel_group(losses):
         [loss.clone().detach().view(1) for loss in losses])
     torch.distributed.all_reduce(averaged_losses,
                                  group=mpu.get_data_parallel_group())
+    print(f"@@@_losses: {averaged_losses}")
     averaged_losses = averaged_losses / \
         torch.distributed.get_world_size(group=mpu.get_data_parallel_group())
+    print(f"@@@averaged_losses: {averaged_losses}")
 
     return averaged_losses
 
