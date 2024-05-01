@@ -96,12 +96,13 @@ def average_losses_across_data_parallel_group(losses):
     """Reduce a tensor of losses across all GPUs."""
     averaged_losses = torch.cat(
         [loss.clone().detach().view(1) for loss in losses])
+    # print(f"@@@l_losses: {averaged_losses}")
     torch.distributed.all_reduce(averaged_losses,
                                  group=mpu.get_data_parallel_group())
-    print(f"@@@_losses: {averaged_losses}")
+    # print(f"@@@ar_losses: {averaged_losses}")
     averaged_losses = averaged_losses / \
         torch.distributed.get_world_size(group=mpu.get_data_parallel_group())
-    print(f"@@@averaged_losses: {averaged_losses}")
+    # print(f"@@@averaged_losses: {averaged_losses}")
 
     return averaged_losses
 
