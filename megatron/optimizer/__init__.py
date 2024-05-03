@@ -95,6 +95,7 @@ def get_megatron_optimizer(model,
         else:
             from deepspeed.ops.adam import DeepSpeedCPUAdam
             cpu_adam_optimizer = DeepSpeedCPUAdam
+        logger.info('Using CPU adam optimizer with Symi parameter groups')
         optimizer = cpu_adam_optimizer(param_groups,
                                        lr=args.lr,
                                        weight_decay=args.weight_decay,
