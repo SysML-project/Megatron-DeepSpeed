@@ -41,7 +41,7 @@ GLOBAL_BATCH_SIZE=16
 
 BATCH_SIZE=8
 
-TRAIN_TOKENS=4000
+TRAIN_TOKENS=40000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
@@ -84,13 +84,13 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=4
+EXPERTS=32
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=3
+EXPERT_CLASSES=16
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.

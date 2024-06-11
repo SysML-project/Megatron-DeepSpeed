@@ -24,28 +24,22 @@ log_expert_selection=1
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=64
+SEQ_LEN=4
 
-## GPT-3 Small 125M
-MODEL_SIZE=0.125
-NUM_LAYERS=12
-HIDDEN_SIZE=768
-NUM_ATTN_HEADS=12
-GLOBAL_BATCH_SIZE=256
-
+## GPT-3 Small Small
 MODEL_SIZE=0.125
 NUM_LAYERS=2
-HIDDEN_SIZE=768
+HIDDEN_SIZE=2
 NUM_ATTN_HEADS=2
-GLOBAL_BATCH_SIZE=16
+GLOBAL_BATCH_SIZE=4
 
-BATCH_SIZE=4
+BATCH_SIZE=2
 
-TRAIN_TOKENS=40000
+TRAIN_TOKENS=12
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
-WARMUP_TOKENS=32
+WARMUP_TOKENS=4
 LR_DECAY_TOKENS=300000000000
 MP_SIZE=1
 PP_SIZE=1
@@ -84,24 +78,15 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=8
+EXPERTS=4
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=4
+EXPERT_CLASSES=3
 
-## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
-## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
-# EP_PARALLEL_SIZE=4
-# if [[ $ADAPTIVE_MOE == "true" ]]; then
-#     EP_PARALLEL_SIZE=$NUM_GPUS
-# fi
-### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
-### This used to work. Megatron should have some assert somewhere
-EP_PARALLEL_SIZE=$NUM_GPUS
-EP_PARALLEL_SIZE=2
+EP_PARALLEL_SIZE=1
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
@@ -113,7 +98,7 @@ MLC=0.001
 ## convergence, but will also reduce training throughput.
 MOE_TRAIN_CAP_FACTOR=1.0
 MOE_EVAL_CAP_FACTOR=1.0
-MOE_MIN_CAP=1
+MOE_MIN_CAP=2
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
 
@@ -142,9 +127,9 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ###############################################################################
 ### Misc configs
 LOG_INTERVAL=1
-EVAL_ITERS=1
-EVAL_INTERVAL=3
-SAVE_INTERVAL=10000000000
+EVAL_ITERS=2
+EVAL_INTERVAL=20
+SAVE_INTERVAL=20
 
 ## Standard deviation for weight initialization
 ## We used 0.014 for 350M/1.3B dense/MoE models, and used 0.01 for 6.7B
@@ -184,8 +169,8 @@ CHECKPOINT_PATH="${OUTPUT_BASEPATH}/checkpoint/${NAME}"
 VOCAB_PATH=../datasets/gpt2-vocab.json
 MERGE_PATH=../datasets/gpt2-merges.txt
 
-# DATA_PATH=../datasets/wikitext/wikitext103_text_document
-DATA_PATH=../datasets/mmlu/mmlu_question_document
+DATA_PATH=../datasets/wikitext/wikitext103_text_document
+# DATA_PATH=../datasets/mmlu/mmlu_question_document
 
 ###############################################################################
 data_options=" \
