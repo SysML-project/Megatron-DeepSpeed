@@ -81,9 +81,9 @@ TRAINING_ARGS="\
 
 # Dataset
 DATA_ARGS="\
---data-path ../dataset/wikitext103_text_document \
---vocab-file ../dataset/gpt2-vocab.json \
---merge-file ../dataset/gpt2-merges.txt \
+--data-path ../datasets/wikitext/wikitext103_text_document \
+--vocab-file ../datasets/gpt2-vocab.json \
+--merge-file ../datasets/gpt2-merges.txt \
 --make-vocab-size-divisible-by 1024 \
 --data-impl mmap \
 --split 949,50,1"
