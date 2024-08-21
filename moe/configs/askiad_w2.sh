@@ -1,2 +1,2 @@
 # Cluster configuration
-HOST_FILE=./configs/hostfiles/askiad_2node
+HOST_FILE=./configs/hostfiles/askiad_w2
