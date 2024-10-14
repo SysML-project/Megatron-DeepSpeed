@@ -70,12 +70,12 @@ echo $NUM_NODE NODES
 # DS-GPU   |     false    |      true      |     0
 
 ## Enable adaptive expert replication
-ADAPTIVE_MOE="false"
-# ADAPTIVE_MOE="true"
+# ADAPTIVE_MOE="false"
+ADAPTIVE_MOE="true"
 
 ## Bind the optimizer placement with to the experts
-# BIND_OPTIMIZER="false"
-BIND_OPTIMIZER="true"
+BIND_OPTIMIZER="false"
+# BIND_OPTIMIZER="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
@@ -101,7 +101,6 @@ EXPERT_CLASSES=2
 ### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
 ### This used to work. Megatron should have some assert somewhere
 EP_PARALLEL_SIZE=$NUM_GPUS
-EP_PARALLEL_SIZE=1
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
@@ -336,6 +335,7 @@ if [[ -n $HOST_FILE ]]; then
     done < ${HOST_FILE}
 fi
 
+# NCCL_DEBUG=INFO
 run_cmd="deepspeed ${HOST_ARGS} ${DIR}/../pretrain_gpt.py ${megatron_options} ${data_options} ${deepspeed_options} 2>&1 | tee ${OUTPUT_BASEPATH}/log/${NAME}_${host}_${current_time}.log"
 echo ${run_cmd}
 eval ${run_cmd}

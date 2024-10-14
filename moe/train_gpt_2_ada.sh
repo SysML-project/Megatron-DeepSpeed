@@ -24,7 +24,7 @@ log_expert_selection=1
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=64
+SEQ_LEN=16
 
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
@@ -37,15 +37,15 @@ MODEL_SIZE=0.125
 NUM_LAYERS=2
 HIDDEN_SIZE=768
 NUM_ATTN_HEADS=2
-GLOBAL_BATCH_SIZE=16
+GLOBAL_BATCH_SIZE=8
 
-BATCH_SIZE=8
+BATCH_SIZE=4
 
-TRAIN_TOKENS=40000
+TRAIN_TOKENS=4096
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
-WARMUP_TOKENS=32
+WARMUP_TOKENS=0
 LR_DECAY_TOKENS=300000000000
 MP_SIZE=1
 PP_SIZE=1
@@ -84,13 +84,13 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=32
+EXPERTS=4
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=16
+EXPERT_CLASSES=3
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
