@@ -861,7 +861,13 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
     # TODO: We hardcode this for now. In the future, systematically spead experts evenly
     print(f"local_experts: {local_experts}, expert_instances: {expert_instances}, expert_classes: {expert_classes}")
     # 2 nodes
-    if (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
+    if (local_experts == 2 and expert_instances == 4 and expert_classes == 2):
+        return { 2: [
+            [[0, 1]],
+            [[0, 1]]
+        ]}
+    # 2 nodes
+    elif (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
         return { 2: [
             [[0, 1]],
             [[0], [1]]
