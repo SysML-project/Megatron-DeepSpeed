@@ -90,7 +90,7 @@ if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=2
+# EXPERT_CLASSES= EXPERTS / (GPUS / EP_PARALLEL_SIZE)
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
@@ -100,8 +100,9 @@ EXPERT_CLASSES=2
 # fi
 ### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
 ### This used to work. Megatron should have some assert somewhere
-EP_PARALLEL_SIZE=$NUM_GPUS
-EP_PARALLEL_SIZE=1
+# EP_PARALLEL_SIZE=$NUM_GPUS
+# EP_PARALLEL_SIZE=1
+EP_PARALLEL_SIZE=1 ### EP_PARALLEL_SIZE = EXPERT_CLASSES * GPUS / EXPERT_INSTANCES
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
