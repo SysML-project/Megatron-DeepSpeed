@@ -24,7 +24,7 @@ log_expert_selection=1
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=512
+SEQ_LEN=16
 
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
@@ -34,14 +34,14 @@ NUM_ATTN_HEADS=12
 GLOBAL_BATCH_SIZE=256
 
 MODEL_SIZE=0.125
-NUM_LAYERS=12
+NUM_LAYERS=2
 HIDDEN_SIZE=768
-NUM_ATTN_HEADS=12
-GLOBAL_BATCH_SIZE=16
+NUM_ATTN_HEADS=2
+GLOBAL_BATCH_SIZE=8
 
-BATCH_SIZE=8
+BATCH_SIZE=4
 
-TRAIN_TOKENS=819200
+TRAIN_TOKENS=4096
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
@@ -84,7 +84,7 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=32
+EXPERTS=4
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
