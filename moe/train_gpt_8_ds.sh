@@ -135,8 +135,8 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ###############################################################################
 ### Misc configs
 LOG_INTERVAL=1
-EVAL_ITERS=4
-EVAL_INTERVAL=50
+EVAL_ITERS=0
+EVAL_INTERVAL=1000000000000000000000000000
 SAVE_INTERVAL=1000000000000000000000000000
 
 ## Standard deviation for weight initialization
