@@ -1,4 +1,4 @@
-#!/bin/bash -x
+#!/bin/bash
 DIR=`pwd`
 ###############################################################################
 ### System configs
@@ -24,13 +24,7 @@ log_expert_selection=1
 ### Model configs
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
-SEQ_LEN=1024
-
-### The "GPT-3 XXX" below are configs from GPT-3 paper
-### https://arxiv.org/abs/2005.14165, choose based on
-### your desired model size or build your own configs
-
-# **NOTE**: See the later comments regarding LR
+SEQ_LEN=256
 
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
@@ -39,113 +33,20 @@ HIDDEN_SIZE=768
 NUM_ATTN_HEADS=12
 GLOBAL_BATCH_SIZE=256
 
-# LR=6.0e-4
-# MIN_LR=6.0e-5
-
-## GPT-3 Medium 350M
-# MODEL_SIZE=0.35
-# NUM_LAYERS=24
-# HIDDEN_SIZE=1024
-# NUM_ATTN_HEADS=16
-# GLOBAL_BATCH_SIZE=256
-
-# LR=3.0e-4
-# MIN_LR=3.0e-5
-
-## GPT-3 Large 760M
-# MODEL_SIZE=0.76
-# NUM_LAYERS=24
-# HIDDEN_SIZE=1536
-# NUM_ATTN_HEADS=16
-# GLOBAL_BATCH_SIZE=256
-
-# LR=2.5e-4
-# MIN_LR=2.5e-5
-
-## GPT-3 XL 1.3B
-# MODEL_SIZE=1.3
-# NUM_LAYERS=24
-# HIDDEN_SIZE=2048
-# NUM_ATTN_HEADS=16
-# GLOBAL_BATCH_SIZE=512
-
-# LR=2.0e-4
-# MIN_LR=2.0e-5
-
-## GPT-3 2.7B
-# MODEL_SIZE=2.7
-# NUM_LAYERS=32
-# HIDDEN_SIZE=2560
-# NUM_ATTN_HEADS=32
-# GLOBAL_BATCH_SIZE=512
-# LR=1.6e-4
-# MIN_LR=1.6e-5
-
-## GPT-3 6.7B
-# MODEL_SIZE=6.7
-# NUM_LAYERS=32
-# HIDDEN_SIZE=4096
-# NUM_ATTN_HEADS=32
-# GLOBAL_BATCH_SIZE=1024
-# LR=1.2e-4
-# MIN_LR=1.2e-5
-
-## GPT-3 13B
-# MODEL_SIZE=13
-# NUM_LAYERS=40
-# HIDDEN_SIZE=5120
-# NUM_ATTN_HEADS=40
-# GLOBAL_BATCH_SIZE=1024
-# LR=1.0e-4
-# MIN_LR=1.0e-5
-
-## GPT-3 175B
-# MODEL_SIZE=175
-# NUM_LAYERS=96
-# HIDDEN_SIZE=12288
-# NUM_ATTN_HEADS=96
-# GLOBAL_BATCH_SIZE=1536
-# LR=0.6e-4
-# MIN_LR=0.6e-5
-
-###############################################################################
-### Training duration configs
-## The main termination condition, original GPT-3 paper trains for 300B tokens
-## For MoE model, we found sometimes training a bit more to 330B tokens helps
-TRAIN_TOKENS=300000000
-# TRAIN_TOKENS=330000000000
-
-## TRAIN_ITERS is another termination condition and also affect the number of
-## data samples to be indexed. Since we want to reach the TRAIN_TOKENS
-## above, and techniques like curriculum learning has less token in some steps,
-## so we just set this config large enough to make sure we have enough
-## processed data and don't terminate by TRAIN_ITERS.
-TRAIN_ITERS=$(( ${TRAIN_TOKENS} * 3 / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
-
-## Another termination condition in minutes. Set it large enough to avoid
-## undesired early termination.
-EXIT_DURATION=30000000
-###############################################################################
-### LR configs
-## LR warmup and decay duration, this token-based config is preferable since
-## no need to readjust when the batch size/seqlen is changed.
-## Original GPT-3 paper uses 375M warmup tokens and 260B decay tokens.
-## For MoE model, we found that setting the decay token to 300B helps.
-WARMUP_TOKENS=375000000
-# LR_DECAY_TOKENS=260000000000
-LR_DECAY_TOKENS=300000000000
-###############################################################################
-### Parallelism configs
-## Micro batch size per GPU
-## Make sure that BATCH_SIZE <= GLOBAL_BATCH_SIZE*PP_SIZE*MP_SIZE/NUM_GPUS
 BATCH_SIZE=16
 
-## Model parallelism, 1 is no MP
-MP_SIZE=1
+TRAIN_TOKENS=131072000
+TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
-## Pipeline parallelism
-## Currently we don't support PP for MoE. To disable PP, set PP_SIZE
-## to 1 and use the "--no-pipeline-parallel" arg.
+EXIT_DURATION=3000000000
+
+WARMUP_TOKENS=375000000
+LR_DECAY_TOKENS=300000000000
+
+WARMUP_TOKENS=3276800   #  50 iterations
+LR_DECAY_TOKENS=6553600 # 100 iterations
+
+MP_SIZE=1
 PP_SIZE=1
 NUM_GPUS_PERNODE=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
 NUM_GPUS=$(( ${NUM_NODE} * ${NUM_GPUS_PERNODE} ))
@@ -182,13 +83,13 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=16
+EXPERTS=128
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=4
+EXPERT_CLASSES=32
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
@@ -199,24 +100,23 @@ EXPERT_CLASSES=4
 ### FIXME: why doesn't megastron/deepspeed support tuning EDP groups?
 ### This used to work. Megatron should have some assert somewhere
 EP_PARALLEL_SIZE=$NUM_GPUS
-# EP_PARALLEL_SIZE=2
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
-MLC=0.1
+MLC=0.0001
 
 ## Capacity inputs have minor effect to adaptive baselines
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
 ## Larger capacity factor or disabling capacity limit could improve training
 ## convergence, but will also reduce training throughput.
 MOE_TRAIN_CAP_FACTOR=1.0
-MOE_MIN_CAP=1
+MOE_EVAL_CAP_FACTOR=1.0
+MOE_MIN_CAP=2
 MOE_DROP_TOKEN="true"
 # MOE_DROP_TOKEN="false"
 
 ###############################################################################
 ###############################################################################
-
 
 ## Original GPT-3 model always set min LR at 10% of max LR. For MoE model, we
 ## found that lower LR and min LR (than the base dense model) helps.
@@ -225,12 +125,6 @@ MOE_DROP_TOKEN="true"
 ## heavily tuned.
 LR=4.5e-4
 MIN_LR=4.5e-06
-
-## Below configs adjust the MoE expert token capacity limit during eval
-## eval. To completely disable capacity limit, set MOE_DROP_TOKEN to false.
-## Larger capacity factor or disabling capacity limit could improve training
-## convergence, but will also reduce training throughput.
-MOE_EVAL_CAP_FACTOR=1.0
 
 ###############################################################################
 ### Curriculum learning (CL) configs
@@ -246,9 +140,9 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ###############################################################################
 ### Misc configs
 LOG_INTERVAL=1
-EVAL_ITERS=5
-EVAL_INTERVAL=20
-SAVE_INTERVAL=100000000000
+EVAL_ITERS=0
+EVAL_INTERVAL=1000000000000000000000000000
+SAVE_INTERVAL=1000000000000000000000000000
 
 ## Standard deviation for weight initialization
 ## We used 0.014 for 350M/1.3B dense/MoE models, and used 0.01 for 6.7B
@@ -336,7 +230,6 @@ megatron_options=" \
         --hysteresis 2 \
         --num-workers 0 \
         --fp16 \
-        --save ${CHECKPOINT_PATH} \
         --tensorboard-queue-size 1 \
         --log-timers-to-tensorboard \
         --log-batch-size-to-tensorboard \
