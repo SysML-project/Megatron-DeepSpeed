@@ -77,6 +77,10 @@ ADAPTIVE_MOE="false"
 # BIND_OPTIMIZER="false"
 BIND_OPTIMIZER="true"
 
+## Allow synchronization between experts in the same rank
+INTRA_RANK_GROUPS="false"
+# INTRA_RANK_GROUPS="true"
+
 ## ZeRO optimizer stage
 ZERO_STAGE=1
 
@@ -265,6 +269,11 @@ if [ "${ADAPTIVE_MOE}" = "true" ]; then
 megatron_options="${megatron_options} \
         --adaptive-expert-replication \
         --num-expert-classes ${EXPERT_CLASSES}"
+fi
+
+if [ "${INTRA_RANK_GROUPS}" = "true" ]; then
+megatron_options="${megatron_options} \
+        --intra-rank-edp-groups"
 fi
 
 if [ "${BIND_OPTIMIZER}" = "true" ]; then
