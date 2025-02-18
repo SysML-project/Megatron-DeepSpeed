@@ -78,8 +78,8 @@ BIND_OPTIMIZER="false"
 # BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-INTRA_RANK_GROUPS="false"
-# INTRA_RANK_GROUPS="true"
+# INTRA_RANK_GROUPS="false"
+INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
@@ -145,8 +145,8 @@ CL_STEP=$(( ${CL_TOKENS} / (${GLOBAL_BATCH_SIZE} * ${CL_AVG_SEQLEN}) ))
 ###############################################################################
 ### Misc configs
 LOG_INTERVAL=1
-EVAL_ITERS=1
-EVAL_INTERVAL=3
+EVAL_ITERS=0
+EVAL_INTERVAL=10000000000
 SAVE_INTERVAL=10000000000
 
 ## Standard deviation for weight initialization
