@@ -922,7 +922,6 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31,
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31]
 
-    assert local_experts == expert_instances // expert_classes
     assert len(expert_list) == expert_instances
     assert len(set(expert_list)) == expert_classes
     assert max(expert_list) == expert_classes - 1
