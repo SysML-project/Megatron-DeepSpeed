@@ -856,23 +856,90 @@ def bias_dropout_add_fused_inference(x: torch.Tensor,
 
 def get_initial_placement(expert_instances: int, expert_classes: int, local_experts: int, adaptive_expert_replication: bool = False):
     if not adaptive_expert_replication:
+        return []
+
+    print(f"local_experts: {local_experts}, expert_instances: {expert_instances}, expert_classes: {expert_classes}")
+    # 2 ranks
+    if (local_experts == 2 and expert_instances == 4 and expert_classes == 2):
+        return [0, 1, 0, 1]
+    # 2 ranks
+    elif (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
+        return [0, 1, 0, 2]
+    # 2 ranks
+    elif (local_experts == 4 and expert_instances == 8 and expert_classes == 6):
+        return [0, 1, 2, 4, 0, 1, 3, 5]
+    # 2 ranks
+    elif (local_experts == 16 and expert_instances == 32 and expert_classes == 16):
+        return [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15]
+    # 4 ranks
+    elif (local_experts == 2 and expert_instances == 8 and expert_classes == 4):
+        return [0, 2, 0, 2,
+                1, 3, 1, 3]
+    # 8 ranks
+    elif (local_experts == 2 and expert_instances == 16 and expert_classes == 8):
+        return [0, 4, 0, 4,
+                1, 5, 1, 5,
+                2, 6, 2, 6,
+                3, 7, 3, 7]
+    # 8 ranks
+    elif (local_experts == 4 and expert_instances == 32 and expert_classes == 8):
+        return [0, 2, 4, 6, 0, 2, 4, 6, 0, 2, 4, 6, 0, 2, 4, 6,
+                1, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 7]
+    # 12 ranks
+    elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
+        return [0, 4, 8, 12, 16, 20, 24, 28, 0, 4, 8, 12, 16, 20, 24, 28, 0, 4, 8, 12, 16, 20, 24, 28,
+                1, 5, 9, 13, 17, 21, 25, 29, 1, 5, 9, 13, 17, 21, 25, 29, 1, 5, 9, 13, 17, 21, 25, 29,
+                2, 6, 10, 14, 18, 22, 26, 30, 2, 6, 10, 14, 18, 22, 26, 30, 2, 6, 10, 14, 18, 22, 26, 30,
+                3, 7, 11, 15, 19, 23, 27, 31, 3, 7, 11, 15, 19, 23, 27, 31, 3, 7, 11, 15, 19, 23, 27, 31]
+    # 16 ranks
+    elif (local_experts == 1 and expert_instances == 16 and expert_classes == 4):
+        return [0, 0, 0, 0,
+                1, 1, 1, 1,
+                2, 2, 2, 2,
+                3, 3, 3, 3]
+    # 16 ranks
+    elif (local_experts == 2 and expert_instances == 32 and expert_classes == 4):
+        return [0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2, 0, 2,
+                1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3, 1, 3]
+    # 16 ranks
+    elif (local_experts == 4 and expert_instances == 64 and expert_classes == 16):
+        return [0, 4,  8, 12,  0, 4,  8, 12,  0, 4,  8, 12,  0, 4,  8, 12,
+                1, 5,  9, 13,  1, 5,  9, 13,  1, 5,  9, 13,  1, 5,  9, 13,
+                2, 6, 10, 14,  2, 6, 10, 14,  2, 6, 10, 14,  2, 6, 10, 14,
+                3, 7, 11, 15,  3, 7, 11, 15,  3, 7, 11, 15,  3, 7, 11, 15]
+    # 16 ranks
+    elif (local_experts == 8 and expert_instances == 128 and expert_classes == 32):
+        return [0, 4, 8, 12, 16, 20, 24, 28,  0, 4, 8, 12, 16, 20, 24, 28,
+                0, 4, 8, 12, 16, 20, 24, 28,  0, 4, 8, 12, 16, 20, 24, 28,
+
+                1, 5, 9, 13, 17, 21, 25, 29,  1, 5, 9, 13, 17, 21, 25, 29,
+                1, 5, 9, 13, 17, 21, 25, 29,  1, 5, 9, 13, 17, 21, 25, 29,
+
+                2, 6, 10, 14, 18, 22, 26, 30,  2, 6, 10, 14, 18, 22, 26, 30,
+                2, 6, 10, 14, 18, 22, 26, 30,  2, 6, 10, 14, 18, 22, 26, 30,
+
+                3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31,
+                3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31]
+
+def get_initial_group_placement(expert_instances: int, expert_classes: int, local_experts: int, adaptive_expert_replication: bool = False):
+    if not adaptive_expert_replication:
         return {}
 
     # TODO: We hardcode this for now. In the future, systematically spead experts evenly
     print(f"local_experts: {local_experts}, expert_instances: {expert_instances}, expert_classes: {expert_classes}")
-    # 2 nodes
+    # 2 ranks
     if (local_experts == 2 and expert_instances == 4 and expert_classes == 2):
         return { 2: [
             [[0, 1]],
             [[0, 1]]
         ]}
-    # 2 nodes
+    # 2 ranks
     elif (local_experts == 2 and expert_instances == 4 and expert_classes == 3):
         return { 2: [
             [[0, 1]],
             [[0], [1]]
         ]}
-    # 2 nodes
+    # 2 ranks
     elif (local_experts == 4 and expert_instances == 8 and expert_classes == 6):
         return { 4: [
             [[0, 1]],
@@ -880,7 +947,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0], [1]],
             [[0], [1]]
         ]}
-    # 2 nodes
+    # 2 ranks
     elif (local_experts == 16 and expert_instances == 32 and expert_classes == 16):
         return { 16: [
             [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
@@ -888,19 +955,19 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
             [[0, 1]], [[0, 1]], [[0, 1]], [[0, 1]],
         ]}
-    # 4 nodes
+    # 4 ranks
     elif (local_experts == 2 and expert_instances == 8 and expert_classes == 4):
         return { 2: [
             [[0, 1], [2, 3]],
             [[0, 1], [2, 3]],
         ]}
-    # 8 nodes
+    # 8 ranks
     elif (local_experts == 2 and expert_instances == 16 and expert_classes == 8):
         return { 2: [
             [[0, 1], [2, 3], [4, 5], [6, 7]],
             [[0, 1], [2, 3], [4, 5], [6, 7]],
         ]}
-    # 8 nodes
+    # 8 ranks
     elif (local_experts == 4 and expert_instances == 32 and expert_classes == 8):
         return { 4: [
             [[0, 1, 2, 3], [4, 5, 6, 7]],
@@ -908,7 +975,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [[0, 1, 2, 3], [4, 5, 6, 7]],
             [[0, 1, 2, 3], [4, 5, 6, 7]],
         ]}
-    # 12 nodes
+    # 12 ranks
     elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
         return { 8: [
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
@@ -920,18 +987,18 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
             [ [0, 1, 2], [3, 4, 5], [6, 7, 8], [9, 10, 11] ],
         ]}
-    # 16 nodes
+    # 16 ranks
     elif (local_experts == 1 and expert_instances == 16 and expert_classes == 4):
         return { 1: [
             [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
         ]}
-    # 16 nodes
+    # 16 ranks
     elif (local_experts == 2 and expert_instances == 32 and expert_classes == 4):
         return { 2: [
-            [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
-            [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
+            [ [0, 1, 2, 3, 4, 5, 6, 7], [8, 9, 10, 11, 12, 13, 14, 15] ],
+            [ [0, 1, 2, 3, 4, 5, 6, 7], [8, 9, 10, 11, 12, 13, 14, 15] ],
         ]}
-    # 16 nodes
+    # 16 ranks
     elif (local_experts == 4 and expert_instances == 64 and expert_classes == 16):
         return { 4: [
             [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
@@ -939,7 +1006,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
             [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
             [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
         ]}
-    # 16 nodes
+    # 16 ranks
     elif (local_experts == 8 and expert_instances == 128 and expert_classes == 32):
         return { 8: [
             [ [0, 1, 2, 3], [4, 5, 6, 7], [8, 9, 10, 11], [12, 13, 14, 15] ],
