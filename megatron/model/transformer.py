@@ -1134,7 +1134,7 @@ class ParallelTransformerLayer(MegatronModule):
                                top2_2nd_expert_sampling=args.moe_top2_2nd_expert_sampling,
                                adaptive_expert_replication=args.adaptive_expert_replication,
                                intra_rank_edp_groups=args.intra_rank_edp_groups,
-                               expert_data_parallel_groups=get_initial_placement(self.num_experts, args.num_expert_classes, self.num_experts / args.moe_expert_parallel_size, args.adaptive_expert_replication),
+                               expert_placement=get_initial_placement(self.num_experts, args.num_expert_classes, self.num_experts / args.moe_expert_parallel_size, args.adaptive_expert_replication),
                                log_expert_selection=args.log_moe_expert_selection,
                                log_expert_selection_dir=args.log_moe_expert_selection_dir)
 
