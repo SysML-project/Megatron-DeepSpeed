@@ -928,7 +928,7 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
     assert all([i in expert_list for i in range(expert_classes)]), f"not all classes in {expert_list}"
     if expert_classes != 3: # special test case
         assert all([expert_list.count(i) == (expert_instances // expert_classes) for i in range(expert_classes)]), f"not all counts equal to {expert_instances // expert_classes} : {[expert_list.count(i) for i in range(expert_classes)]}"
-    return expert_list
+    return torch.tensor(expert_list)
 
 
 def get_initial_group_placement(expert_instances: int, expert_classes: int, local_experts: int, adaptive_expert_replication: bool = False):
