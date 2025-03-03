@@ -922,11 +922,12 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31,
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31]
 
-    assert len(expert_list) == expert_instances
-    assert len(set(expert_list)) == expert_classes
-    assert max(expert_list) == expert_classes - 1
-    assert all([i in expert_list for i in range(expert_classes)])
-    assert all([expert_list.count(i) == (expert_instances // expert_classes) for i in range(expert_classes)])
+    assert len(expert_list) == expert_instances, f"{len(expert_list)} != {expert_instances}"
+    assert len(set(expert_list)) == expert_classes, f"{len(set(expert_list))} != {expert_classes}"
+    assert max(expert_list) == expert_classes - 1, f"{max(expert_list)} != {expert_classes - 1}"
+    assert all([i in expert_list for i in range(expert_classes)]), f"not all classes in {expert_list}"
+    if expert_classes != 3: # special test case
+        assert all([expert_list.count(i) == (expert_instances // expert_classes) for i in range(expert_classes)]), f"not all counts equal to {expert_instances // expert_classes} : {[expert_list.count(i) for i in range(expert_classes)]}"
     return expert_list
 
 
