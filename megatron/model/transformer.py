@@ -922,9 +922,6 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31,
                        3, 7, 11, 15, 19, 23, 27, 31,  3, 7, 11, 15, 19, 23, 27, 31]
 
-    # keep ranks with the same expert consequtive
-    expert_list.sort()
-
     assert len(expert_list) == expert_instances, f"{len(expert_list)} != {expert_instances}"
     assert len(set(expert_list)) == expert_classes, f"{len(set(expert_list))} != {expert_classes}"
     assert max(expert_list) == expert_classes - 1, f"{max(expert_list)} != {expert_classes - 1}"
