@@ -31,16 +31,16 @@ MODEL_SIZE=0.125
 NUM_LAYERS=12
 HIDDEN_SIZE=768
 NUM_ATTN_HEADS=12
-GLOBAL_BATCH_SIZE=256
+GLOBAL_BATCH_SIZE=32
 
-BATCH_SIZE=32
+BATCH_SIZE=4
 
-TRAIN_TOKENS=500000000
+TRAIN_TOKENS=204800
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
-
 EXIT_DURATION=3000000000
-WARMUP_TOKENS=0
-LR_DECAY_TOKENS=300000000000
+WARMUP_TOKENS=$(( 200 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
+LR_DECAY_TOKENS=$(( 10000000 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
+
 MP_SIZE=1
 PP_SIZE=1
 NUM_GPUS_PERNODE=$(nvidia-smi --query-gpu=name --format=csv,noheader | wc -l)
@@ -72,8 +72,8 @@ BIND_OPTIMIZER="false"
 # BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-INTRA_RANK_GROUPS="false"
-# INTRA_RANK_GROUPS="true"
+# INTRA_RANK_GROUPS="false"
+INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
@@ -82,13 +82,13 @@ ZERO_STAGE=1
 EXPERT_INTERVAL=1
 
 ## EXPERTS is the number of expert instances (1 means dense model without MoE).
-EXPERTS=32
+EXPERTS=64
 if [[ $EXPERTS -lt $NUM_GPUS ]]; then
     echo "ERROR: EXPERTS should be larger than NUM_GPUS"
     exit
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
-EXPERT_CLASSES=8
+EXPERT_CLASSES=16
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.
@@ -102,7 +102,7 @@ EP_PARALLEL_SIZE=$NUM_GPUS
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
-MLC=0.001
+MLC=0.00001
 
 ## Capacity inputs have minor effect to adaptive baselines
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.

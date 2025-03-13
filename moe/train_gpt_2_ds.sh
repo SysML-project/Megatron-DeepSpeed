@@ -78,8 +78,8 @@ ADAPTIVE_MOE="false"
 BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-INTRA_RANK_GROUPS="false"
-# INTRA_RANK_GROUPS="true"
+# INTRA_RANK_GROUPS="false"
+INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
@@ -95,6 +95,7 @@ if [[ $EXPERTS -lt $NUM_GPUS ]]; then
 fi
 ## EXPERT_CLASSES is the number of expert classes that expert instances group into (for adaptive baselines).
 # EXPERT_CLASSES= EXPERTS / (GPUS / EP_PARALLEL_SIZE)
+EXPERT_CLASSES=16
 
 ## EP_PARALLEL_SIZE is the number of expert classes for the non-adaptive baselines.
 ## EXPERTS / EP_PARALLEL_SIZE is the number of expert slots per GPU for all baselines.

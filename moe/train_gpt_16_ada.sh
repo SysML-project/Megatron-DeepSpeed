@@ -31,20 +31,18 @@ MODEL_SIZE=0.125
 NUM_LAYERS=12
 HIDDEN_SIZE=768
 NUM_ATTN_HEADS=12
-GLOBAL_BATCH_SIZE=256
+GLOBAL_BATCH_SIZE=64
 
-BATCH_SIZE=16
+BATCH_SIZE=4
 
 TRAIN_TOKENS=131072000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
-
 EXIT_DURATION=3000000000
 
 WARMUP_TOKENS=375000000
 LR_DECAY_TOKENS=300000000000
-
-WARMUP_TOKENS=1981440   #  30 iterations
-LR_DECAY_TOKENS=3276800 #  50 iterations
+WARMUP_TOKENS=$(( 200 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
+LR_DECAY_TOKENS=$(( 10000000 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
 
 MP_SIZE=1
 PP_SIZE=1
@@ -77,8 +75,8 @@ BIND_OPTIMIZER="false"
 # BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-INTRA_RANK_GROUPS="false"
-# INTRA_RANK_GROUPS="true"
+# INTRA_RANK_GROUPS="false"
+INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
@@ -107,7 +105,7 @@ EP_PARALLEL_SIZE=$NUM_GPUS
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
-MLC=0.0001
+MLC=0.00001
 
 ## Capacity inputs have minor effect to adaptive baselines
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
