@@ -41,7 +41,7 @@ GLOBAL_BATCH_SIZE=16
 
 BATCH_SIZE=4
 
-TRAIN_TOKENS=4000
+TRAIN_TOKENS=40000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
 
 EXIT_DURATION=30000000
@@ -78,8 +78,8 @@ ADAPTIVE_MOE="false"
 BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-INTRA_RANK_GROUPS="false"
-# INTRA_RANK_GROUPS="true"
+# INTRA_RANK_GROUPS="false"
+INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
