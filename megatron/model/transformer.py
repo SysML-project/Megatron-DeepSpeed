@@ -886,6 +886,12 @@ def get_initial_placement(expert_instances: int, expert_classes: int, local_expe
     elif (local_experts == 4 and expert_instances == 32 and expert_classes == 8):
         expert_list = [0, 2, 4, 6, 0, 2, 4, 6, 0, 2, 4, 6, 0, 2, 4, 6,
                        1, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 7, 1, 3, 5, 7]
+
+    # 8 ranks
+    elif (local_experts == 8 and expert_instances == 64 and expert_classes == 16):
+        expert_list = [0, 2, 4, 6, 8, 10, 12, 14, 0, 2, 4, 6, 8, 10, 12, 14, 0, 2, 4, 6, 8, 10, 12, 14, 0, 2, 4, 6, 8, 10, 12, 14,
+                       1, 3, 5, 7, 9, 11, 13, 15, 1, 3, 5, 7, 9, 11, 13, 15, 1, 3, 5, 7, 9, 11, 13, 15, 1, 3, 5, 7, 9, 11, 13, 15]
+
     # 12 ranks
     elif (local_experts == 8 and expert_instances == 96 and expert_classes == 32):
         expert_list = [0, 4, 8, 12, 16, 20, 24, 28, 0, 4, 8, 12, 16, 20, 24, 28, 0, 4, 8, 12, 16, 20, 24, 28,
