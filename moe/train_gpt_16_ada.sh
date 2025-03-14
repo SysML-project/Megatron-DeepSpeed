@@ -25,6 +25,7 @@ log_expert_selection=1
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
 SEQ_LEN=256
+SEQ_LEN=512
 
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
