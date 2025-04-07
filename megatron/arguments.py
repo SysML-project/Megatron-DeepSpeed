@@ -1537,6 +1537,8 @@ def _add_adaptive_moe_args(parser):
                        help='Number of expert classes.')
     group.add_argument('--adaptive-expert-replication', default=False, action='store_true',
                        help='Enable adaptive expert replication.')
+    group.add_argument('--static-ada', default=False, action='store_true',
+                       help='Static baseline.')
     group.add_argument('--intra-rank-edp-groups', default=False, action='store_true',
                        help='Allow synchronization between experts in the same rank.')
     group.add_argument('--bind-optimizer', default=False, action='store_true',
