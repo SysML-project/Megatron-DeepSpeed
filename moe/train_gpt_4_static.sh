@@ -72,7 +72,7 @@ echo $NUM_NODE NODES
 ## Enable adaptive expert replication
 # ADAPTIVE_MOE="false"
 ADAPTIVE_MOE="true"
-STATIC_ADA="false"
+STATIC_ADA="true"
 
 ## Bind the optimizer placement with to the experts
 BIND_OPTIMIZER="false"
