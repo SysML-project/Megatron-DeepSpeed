@@ -272,7 +272,7 @@ fi
 
 if [ "${STATIC_ADA}" = "true" ]; then
 megatron_options="${megatron_options} \
-        --static-ada
+        --static-ada"
 fi
 
 if [ "${INTRA_RANK_GROUPS}" = "true" ]; then
