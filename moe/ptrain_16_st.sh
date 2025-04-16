@@ -76,8 +76,8 @@ BIND_OPTIMIZER="false"
 # BIND_OPTIMIZER="true"
 
 ## Allow synchronization between experts in the same rank
-# INTRA_RANK_GROUPS="false"
-INTRA_RANK_GROUPS="true"
+INTRA_RANK_GROUPS="false"
+# INTRA_RANK_GROUPS="true"
 
 ## ZeRO optimizer stage
 ZERO_STAGE=1
