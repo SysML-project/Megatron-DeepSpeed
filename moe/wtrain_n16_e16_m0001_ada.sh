@@ -25,16 +25,16 @@ log_expert_selection=1
 ## GPT-3 models use 2K sequence length/context window
 SEQ_LEN=2048
 SEQ_LEN=256
-SEQ_LEN=1024
+SEQ_LEN=512
 
 ## GPT-3 Small 125M
 MODEL_SIZE=0.125
 NUM_LAYERS=12
 HIDDEN_SIZE=768
 NUM_ATTN_HEADS=12
-GLOBAL_BATCH_SIZE=256
+GLOBAL_BATCH_SIZE=64
 
-BATCH_SIZE=16
+BATCH_SIZE=4
 
 TRAIN_TOKENS=524288000
 TRAIN_ITERS=$(( ${TRAIN_TOKENS} / ${GLOBAL_BATCH_SIZE} / ${SEQ_LEN} ))
@@ -42,7 +42,7 @@ EXIT_DURATION=3000000000
 
 WARMUP_TOKENS=375000000
 LR_DECAY_TOKENS=300000000000
-WARMUP_TOKENS=$(( 20 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
+WARMUP_TOKENS=$(( 200 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
 LR_DECAY_TOKENS=$(( 10000000 * ${GLOBAL_BATCH_SIZE} * ${SEQ_LEN} ))
 
 MP_SIZE=1
@@ -106,7 +106,7 @@ EP_PARALLEL_SIZE=$NUM_GPUS
 
 ## Coefficient for MoE loss (load balancing loss)
 ## Megatron: 0.01 works well for 1.3B MoE-128 model
-MLC=0.0001
+MLC=0.00001
 
 ## Capacity inputs have minor effect to adaptive baselines
 ## To completely disable capacity limit, set MOE_DROP_TOKEN to false.
